@@ -108,3 +108,5 @@ two files only.
   `dataDir/index-manifest.json` (the new baseline; bundled manifest is the offline floor). The
   server side that republishes the index is [`ops/publish-index.sh`](../../ops/publish-index.sh); the
   daily wiki/SDE jobs keep Qdrant fresh. See [`RELEASING.md`](../../RELEASING.md).
+
+- Demo (solo screenshot README): `desktop/demo/mock-api.js` e' un mock in memoria di `window.capsuleers` (dati inventati), iniettato da uno script Playwright esterno (`addInitScript`) nel renderer reale caricato da `file://`, locale en-US, images.evetech.net sostituito da un SVG segnaposto, viewport 1240x820 @2x; `!demo/**` escluso in tutti gli electron-builder. Shot in `docs/screenshots/`.

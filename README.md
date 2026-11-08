@@ -11,6 +11,18 @@ It runs entirely on your machine: a local LLM (via `node-llama-cpp`) answers usi
 **RAG** (Retrieval-Augmented Generation) index of EVE knowledge. No data leaves the
 computer, except optional lookups to public EVE APIs for the live-data features.
 
+## Screenshots
+
+<p align="center"><img src="docs/screenshots/chat.png" alt="A fitting question answered with cited sources and computed fit stats"></p>
+
+All pilots, corporations, alliances and conversations shown are invented demo data.
+
+| | |
+|---|---|
+| <img src="docs/screenshots/local-intel.png" alt="Local intel"><br>**Local intel** — copy Local, see who is around, danger-sorted | <img src="docs/screenshots/pilot.png" alt="Pilot dossier"><br>**Pilot dossier** — stats, playstyle, wingmates, recent ships |
+| <img src="docs/screenshots/dscan.png" alt="D-Scan"><br>**D-Scan** — offline composition breakdown | <img src="docs/screenshots/models.png" alt="Model picker"><br>**Models** — response-time estimate for your free VRAM |
+| <img src="docs/screenshots/index.png" alt="RAG index"><br>**Knowledge index** — version, size and re-download | |
+
 ## Download
 
 Grab the installer for your OS from the [**Releases**](../../releases/latest):

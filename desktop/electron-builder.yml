@@ -24,6 +24,7 @@ files:
   - "!*.py"
   - "!build-index.mjs"
   - "!rag.mjs"
+  - "!demo/**"            # README-screenshot mock, never shipped
   - "!**/*.md"
   - "!**/.selected-model"
   # Trimming node-llama-cpp: at runtime only the compiled binary is needed (.node

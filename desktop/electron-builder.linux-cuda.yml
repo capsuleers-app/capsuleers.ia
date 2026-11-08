@@ -21,6 +21,7 @@ files:
   - "!*.py"
   - "!build-index.mjs"
   - "!rag.mjs"
+  - "!demo/**"            # README-screenshot mock, never shipped
   - "!**/*.md"
   - "!**/.selected-model"
   - "!**/node_modules/node-llama-cpp/llama/llama.cpp/**"
