@@ -2,20 +2,20 @@
   "schemaVersion": 1,
   "_note": "Bundled manifest for the FIXED on-demand assets: the RAG index (hosted on the GitHub release index-<version>) and the embedding model (bge-m3). size in bytes, sha256 authoritative. Chat models are NOT here \u2014 they live in the updatable models-catalog.json (size/SHA256 resolved live from HuggingFace).",
   "index": {
-    "version": "2026.11.08",
+    "version": "2026.11.09",
     "embedModel": "bge-m3",
     "dim": 1024,
-    "baseUrl": "https://github.com/capsuleers-app/capsuleers.ia/releases/download/index-2026.11.08",
+    "baseUrl": "https://github.com/capsuleers-app/capsuleers.ia/releases/download/index-2026.11.09",
     "files": [
       {
         "name": "index.vec",
-        "size": 356777984,
-        "sha256": "741a04a80270ed3e104ca70ad4dc1f51b499a54aa9ae861fb14b79b5f207f800"
+        "size": 356900864,
+        "sha256": "60b86825d69d1dff1d54c60d8f84b8891a578e9ffa575a39bec6f1e943bdde89"
       },
       {
         "name": "index.meta.jsonl",
-        "size": 59654476,
-        "sha256": "d79271d966ea8124d39acb157dccac72a14a50e06824af89ec8936ce3dfb0e7a"
+        "size": 59683252,
+        "sha256": "63b04ce48aa1646c319865eeaee41555f5487255e3469c0507ecbdd8733f8dcc"
       },
       {
         "name": "names_index.json",
