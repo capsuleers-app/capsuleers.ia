@@ -16,23 +16,22 @@ name: Release on eve-fit-engine bump
 # no version bump, no tag, no installer. Comparing the lockfile fires on the thing
 # that matters, whoever wrote the commit and however they worded it.
 #
-# Loop safety, unchanged in substance: the release commit this job creates touches
-# only `version` in package.json, never the eve-fit-engine entry, so the check
-# below reports "no change". Belt and braces, it is pushed with GITHUB_TOKEN, which
-# by design does not re-trigger push workflows.
+# Loop safety: the push uses a GitHub App token (so the App can bypass the
+# "PR required" ruleset on main), and App pushes DO re-trigger workflows. The
+# release commit this job creates touches only `version` in package.json, never
+# the eve-fit-engine entry, so the lockfile check below reports "no change" on
+# the re-triggered run and it exits without doing anything.
 #
-# Why dispatch instead of relying on the tag push: a tag pushed with
-# GITHUB_TOKEN does not trigger release.yml's `on: push: tags`. workflow_dispatch
-# is the documented exception that DOES run under GITHUB_TOKEN, so we trigger the
-# release build explicitly on the freshly created tag.
+# No explicit dispatch of release.yml: with the App token the tag push itself
+# triggers release.yml's `on: push: tags`. Dispatching as well would build and
+# publish the same release twice.
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write   # push the bump commit + tag
-  actions: write    # dispatch release.yml
+  contents: read    # push goes through the GitHub App token
 
 concurrency:
   group: release-on-fit-bump
@@ -42,9 +41,19 @@ jobs:
   bump-and-release:
     runs-on: ubuntu-latest
     steps:
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.CAPSULEERS_BOT_APP_ID }}
+          private-key: ${{ secrets.CAPSULEERS_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: capsuleers.ia
+
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
 
       # Read the resolved version out of the lockfile before and after this push.
       # The lockfile, not package.json: the range (`^0.1.25`) can stay put while
@@ -93,11 +102,4 @@ jobs:
           git commit -m "chore(release): $VERSION [auto] after dependency update"
           git tag "$VERSION"
           git push origin HEAD:main
-          git push origin "$VERSION"
-
-      - name: Dispatch release build for the new tag
-        if: steps.changed.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.bump.outputs.version }}
-        run: gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "$VERSION"
+          git push origin "$VERSION"   # triggers release.yml (on: push: tags)
