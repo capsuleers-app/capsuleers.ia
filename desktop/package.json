@@ -23,10 +23,10 @@
   "dependencies": {
     "electron-updater": "^6.8.11",
     "eve-fit-engine": "^0.2.21",
-    "node-llama-cpp": "^3.22.2"
+    "node-llama-cpp": "^3.22.3"
   },
   "devDependencies": {
-    "electron": "^45.2.1",
+    "electron": "^45.2.3",
     "electron-builder": "^26.18.0"
   },
   "overrides": {
