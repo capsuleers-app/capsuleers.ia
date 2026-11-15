@@ -8,6 +8,7 @@ Supports:
 
 from __future__ import annotations
 
+import re
 import uuid
 from collections.abc import Iterable
 
@@ -94,8 +95,27 @@ def index_chunks(
     return total
 
 
+_ATTR_LINE = re.compile(r"\nAttributi:[^\n]*")
+
+
+def embed_text(text: str, source: str | None) -> str:
+    """What gets EMBEDDED for a chunk (the stored/shown text is always the full one).
+
+    An SDE record ends with "Attributi: …", a dump of 30-60 attribute values that is most of
+    its length and says nothing about what the item IS. Embedded with it, a ship's record sat
+    at cosine 0.26-0.38 from questions about that ship; without it at 0.44-0.69 (bge-m3,
+    measured on Caracal / Gila / Rokh / Damage Control II, 2026-11-15) — dense rank 17 132 →
+    top 10 for "quali skill servono per pilotare una Caracal?". Only for `ccp_sde`, and only
+    when something substantial remains (a continuation chunk that IS the dump stays whole).
+    """
+    if source != "ccp_sde":
+        return text
+    head = _ATTR_LINE.sub("", text, count=1)
+    return head if len(head) >= 80 else text
+
+
 def _flush(client: QdrantClient, collection: str, chunks: list[Chunk], cache: EmbedCache | None) -> int:
-    vectors = _embed_with_cache([c.text for c in chunks], cache)
+    vectors = _embed_with_cache([embed_text(c.text, c.metadata.get("source")) for c in chunks], cache)
     points = [
         PointStruct(
             id=str(uuid.uuid5(uuid.NAMESPACE_URL, c.id)),

@@ -68,10 +68,22 @@ export async function downloadFile({ url, dest, sha256, size, force = false, onP
       onProgress({ received: t, total: t, speed: 0, done: true });
       return dest;
     }
-    await fs.promises.unlink(dest).catch(() => {});  // corrupted/different → re-download
+    // corrupted/different → re-download, but KEEP the current file until the fresh one is
+    // verified and renamed over it (step 4): an interrupted update must not leave the
+    // install without its (older, still usable) file.
   }
 
-  // 2) Resume point: how many bytes are already in the ".part".
+  // 2) Resume point: how many bytes are already in the ".part" — but only if that part
+  //    belongs to THIS download (sidecar tag = expected sha256, else url+size). A part from
+  //    another index version / interrupted older app build can never be resumed safely.
+  const tagFile = part + ".id";
+  const tag = sha256 ? `sha256:${sha256}` : `url:${url}|${size || 0}`;
+  let prevTag = null;
+  try { prevTag = fs.readFileSync(tagFile, "utf-8"); } catch { /* no sidecar */ }
+  if (prevTag !== tag) {
+    await fs.promises.unlink(part).catch(() => {});
+    await fs.promises.writeFile(tagFile, tag);
+  }
   let start = statSize(part);
   if (size && start > size) { await fs.promises.unlink(part).catch(() => {}); start = 0; }
 
@@ -118,10 +130,12 @@ export async function downloadFile({ url, dest, sha256, size, force = false, onP
     const got = hash.digest("hex");
     if (got !== sha256) {
       await fs.promises.unlink(part).catch(() => {});
+      await fs.promises.unlink(tagFile).catch(() => {});
       throw new Error(`SHA256 non combacia: ${got.slice(0, 16)}… ≠ ${sha256.slice(0, 16)}…`);
     }
   }
   await fs.promises.rename(part, dest);
+  await fs.promises.unlink(tagFile).catch(() => {});
   onProgress({ received, total: received, speed, done: true });
   return dest;
 }

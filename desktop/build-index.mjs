@@ -36,7 +36,14 @@ const t0 = Date.now();
 
 async function flush(batch) {
   // Concurrent embeddings, results in order.
-  const vecs = await Promise.all(batch.map((o) => ctx.getEmbeddingFor(o.text)));
+  // Same rule as ingestion/capsuleers_ingestion/index.py::embed_text: an SDE record is embedded
+  // without its "Attributi: …" dump (the stored text keeps it).
+  const embedText = (o) => {
+    if ((o.metadata?.source ?? null) !== "ccp_sde") return o.text;
+    const head = o.text.replace(/\nAttributi:[^\n]*/, "");
+    return head.length >= 80 ? head : o.text;
+  };
+  const vecs = await Promise.all(batch.map((o) => ctx.getEmbeddingFor(embedText(o))));
   for (let i = 0; i < batch.length; i++) {
     const f32 = Float32Array.from(vecs[i].vector);
     if (f32.length !== DIM) throw new Error(`dim ${f32.length} != ${DIM}`);

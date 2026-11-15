@@ -15,6 +15,7 @@ import { linkify, detectLang, configureDataDir as linksDataDir } from "./links.m
 import { tierOf, tierTag, bonusOf } from "./source-tiers.mjs";
 import { buildLexicalIndex, retrieveAsync, namedEntities } from "./retrieval.mjs";
 import { buildTimeline, timelineBlock, TIMELINE_Q } from "./timeline.mjs";
+import { unsupportedNumbers } from "./grounding.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -165,7 +166,41 @@ const EVE_SLANG = {
 // embedding elsewhere), 2 when substituted. English queries are left alone: there
 // "ore" already means ore; so is "quante ore dura" (no mining context).
 const MINING_CONTEXT = /\b(asteroid\w*|belt|min(?:ing|er\w*|eral\w*)|estra\w*|raffin\w*|refin\w*|veldspar|scordite|pyroxeres|plagioclase|omber|kernite|jaspet|hemorphite|hedbergite|gneiss|ochre|crokite|bistot|arkonor|mercoxit|spodumain|ghiacci\w*|ice)\b/i;
+// The sources are English; an Italian question about a concept whose Italian word shares
+// nothing with the English one never reaches the page that explains it: "si può giocare
+// gratis?" retrieved the EULA (not Alpha clones), "quanto dura un'assicurazione?" no Insurance
+// page at all. The Italian word keeps its place and gets the game's term next to it — the
+// same substitution that worked for "ore" (appending words at the end pulled the embedding
+// elsewhere). Only for Italian questions; game names typed in English are left alone.
+const IT_EN = [
+  [/\b(gratis|gratuit\w*|free\s+to\s+play|f2p)\b/gi, "Alpha clone free to play"],
+  [/\b(abbonament\w*|a\s+pagamento)\b/gi, "Omega clone subscription"],
+  [/\b(assicura\w*)\b/gi, "insurance"],
+  [/\b(raffin\w*|riprocess\w*)\b/gi, "reprocessing"],
+  [/\b(minare|mina(?:ndo|tore|tori)|estrazione\s+mineraria)\b/gi, "mining"],
+  [/\b(esplora\w*)\b/gi, "exploration"],
+  [/\b(guadagn\w*|fare\s+(?:isk|soldi)|far\s+soldi)\b/gi, "making money ISK income"],
+  [/\b(principiant\w*|nuov[oi]\s+giocator\w*|alle\s+prime\s+armi)\b/gi, "new player beginner"],
+  [/\b(logistic\w+)\b/gi, "logistics"],
+  [/\b(trasport\w*)\b/gi, "hauling"],
+  [/\b(sovranit[àa])\b/gi, "sovereignty"],
+  [/\b(incursion[ei])\b/gi, "incursions"],
+  [/\b(mission[ei])\b/gi, "missions"],
+  [/\b(tass[ae]|imposte?)\b/gi, "tax"],
+  [/\b(contratt[oi])\b/gi, "contracts"],
+  [/\b(mercato)\b/gi, "market"],
+  [/\b(produzione|produrre|costruire|fabbrica\w*)\b/gi, "manufacturing industry"],
+  [/\b(ricerca\s+(?:dei\s+)?progetti|invenzione)\b/gi, "invention research"],
+  [/\b(pianet[ai])\b/gi, "planetary"],
+  [/\b(flott[ae])\b/gi, "fleet"],
+  [/\b(guerr[ae])\b/gi, "war"],
+  [/\b(taglia|taglie)\b/gi, "bounty"],
+  [/\b(reputazione)\b/gi, "standings"],
+  [/\b(morte|muoio|muori|morire|distrutt\w*)\b/gi, "death clone ship loss"],
+];
 export function expandQuery(q) {
+  const italian = detectLang(q, "en") === "it";
+  if (italian) for (const [re, en] of IT_EN) q = q.replace(re, (m) => `${m} (${en})`);
   let out = q.replace(/\b([a-z]{2,4})\b/gi, (m) => EVE_SLANG[m.toLowerCase()] ? `${m} ${EVE_SLANG[m.toLowerCase()]}` : m);
   // A count before it ("quante ore", "2 ore", "poche ore") is time, mining or not.
   if (MINING_CONTEXT.test(q) && detectLang(q, "en") === "it") {
@@ -655,19 +690,21 @@ function modelFiles() {
 function paramsBFromSize(bytes) { return Math.max(0.3, (bytes / 1e9) / 0.58); }
 
 // Estimated generation speed (tokens/s), calibrated on real measurements from this
-// machine (RX 6700 XT, Vulkan, Q4): fully in GPU ≈ 120/paramsB tok/s; with partial
+// machine (RX 6700 XT, Vulkan, Q4; re-measured 2026-11-15 on eval/answers.jsonl with
+// node-llama-cpp 3.22: 4B ~90, 9B ~55, 12B ~37 tok/s): fully in GPU ≈ 430/paramsB tok/s; with partial
 // offload the CPU part dominates (≈2.5 tok/s "equivalent", almost independent of
 // size because it's bound by CPU↔GPU transfers) → weighted harmonic mean.
 function estimateTokPerSec(paramsB, fraction) {
-  const sFull = 120 / paramsB;
+  const sFull = 430 / paramsB;
   if (fraction >= 0.97) return sFull;
   const tPerTok = fraction / sFull + (1 - fraction) / 2.5;
   return 1 / tPerTok;
 }
-// Estimated time for a typical answer: prefill of the RAG context (~1800 tokens, ~6×
-// the generation speed) + ~180 generated tokens.
+// Estimated time for a typical answer: reading the prompt (~2400 tokens at ~15× the
+// generation speed: measured first token 1.6 s / 3.3 s / 4.3 s on 4B / 9B / 12B) + ~230
+// generated tokens. Measured whole answers: 5 s / 9 s / 11 s.
 function estimateEtaSeconds(tokPerSec) {
-  return Math.round(1800 / (tokPerSec * 6) + 180 / tokPerSec);
+  return Math.round(2400 / (tokPerSec * 15) + 230 / tokPerSec);
 }
 function ratingFor(fraction) {
   return fraction >= 0.97 ? "veloce" : fraction >= 0.6 ? "accettabile" : "lento";
@@ -965,9 +1002,14 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // "elencale" after an Italian turn doesn't flip to English). First turn: detect,
   // with the system language as the tie-breaker instead of always English.
   const sysFb = (uiLang === "it" || uiLang === "en") ? uiLang : "en";
+  // …but a full sentence clearly written in the other language switches the conversation
+  // (seen in the app: "what does o7 mean?" inside an Italian chat was answered in Italian).
+  // detectLang falls back to the conversation's language when unsure, so a different result
+  // on a question of four words or more is a real switch, not a stray English game term.
+  const detected = detectLang(question, convLang || sysFb);
   const qLang = isFit ? sysFb
-    : convLang ? convLang          // a follow-up keeps the conversation's language
-    : detectLang(question, sysFb);
+    : convLang ? ((detected !== convLang && question.trim().split(/\s+/).length >= 4) ? detected : convLang)
+    : detected;
   convLang = qLang;
 
   // 3b. Ambiguous entity ("chi è X" matched >1 entity exactly across types): ask the
@@ -1163,6 +1205,12 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // order a reader should trust them in. Stable sort keeps retrieval order within
   // a tier.
   sources = sources.map((x) => ({ ...x, tier: x.tier ?? tierOf(x).tier })).sort((a, b) => a.tier - b.tier);
+  // Numbers of the answer that appear nowhere in what the model was shown (grounding.mjs).
+  // A DIAGNOSTIC, not a warning for the user: about half of what it flags are correct
+  // calculations (1700 + 1200 + 1400 = 4300), so it is returned and counted by eval-answers
+  // ("risposte con numeri non presenti nelle fonti") but never shown.
+  // Not for fits (computed stats + theorycrafting from general knowledge) nor aborted answers.
+  const unverified = (!isFit && !aborted && answer) ? unsupportedNumbers(answer, userMsg) : [];
   mark("post");
-  return { answer: linked, sources, timing, kills: (mcp.kills?.length ? mcp.kills : intel.kills), cards: mcp.cards || intel.card || fitSuggest || null };
+  return { answer: linked, sources, timing, unverified, kills: (mcp.kills?.length ? mcp.kills : intel.kills), cards: mcp.cards || intel.card || fitSuggest || null };
 }

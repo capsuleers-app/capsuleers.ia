@@ -55,13 +55,27 @@ export function loadManifest() {
  *  persisted (auto-updated) manifest in dataDir when present. The embedding block
  *  always comes from the bundle (it never auto-updates). Everything that reasons
  *  about the INDEX (status, first-run, refresh) should use this, not loadManifest. */
+// Dotted-numeric version compare ("2026.11.14" > "2026.10.02"); non-numeric parts count as 0.
+const verParts = (v) => String(v || "").split(".").map((x) => parseInt(x, 10) || 0);
+export function compareVersions(a, b) {
+  const x = verParts(a), y = verParts(b);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d < 0 ? -1 : 1; }
+  return 0;
+}
+
 export function loadEffectiveManifest(dataDir) {
   const bundled = loadManifest();
   if (!dataDir) return bundled;
   try {
     const persisted = JSON.parse(fs.readFileSync(path.join(dataDir, PERSISTED_INDEX_MANIFEST), "utf-8"));
     if (persisted?.index?.version && Array.isArray(persisted.index.files) && indexFilesSafe(persisted)) {
-      return { ...bundled, index: persisted.index };
+      // A persisted manifest OLDER than the bundled one is only kept while its files are
+      // actually installed (working index, no forced setup). If they are missing/partial
+      // (e.g. an interrupted update) fall back to the newer bundled one: the old baseUrl
+      // may no longer exist and re-downloading the stale version is pointless.
+      const older = compareVersions(persisted.index.version, bundled.index.version) < 0;
+      const installed = persisted.index.files.every((f) => sizeMatches(safeJoinOrNull(dataDir, f.name) || "", f.size));
+      if (!older || installed) return { ...bundled, index: persisted.index };
     }
   } catch { /* none yet → bundled */ }
   return bundled;

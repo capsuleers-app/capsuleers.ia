@@ -47,6 +47,7 @@ const MAX_DUP = 1;
 // SDE record with the actual slot layout no longer fit — the model answered "3 mid,
 // 4 low" (it is 4 and 5). Same on the Caracal skill tree, with four chunks of one page.
 const MAX_PER_PAGE = 1;
+const TOP_PAGE_CHUNKS = 2;   // …except the page of the best-ranked web chunk (see diversify)
 
 // BM25 parameters (the textbook values) and the document-frequency ceiling above
 // which a query term is ignored: the lexical side is there for RARE names (Amulet:
@@ -67,6 +68,7 @@ better best good eve online
 `.split(/\s+/).filter(Boolean));
 
 const TOKEN = /[\p{L}\p{N}]+/gu;
+const MAX_TITLE_NGRAM = 6;
 
 /** Lower-cased word tokens (letters/digits, any script), length ≥ 2. */
 export function tokenize(text) {
@@ -82,11 +84,14 @@ export function tokenize(text) {
  */
 export function buildLexicalIndex(meta) {
   const raw = new Map();   // token → [doc, tf, doc, tf, …] while building
+  const byTitle = new Map();   // "damage control ii" → docs with exactly that title (≥ 2 tokens)
   const docLen = new Uint32Array(meta.length);
   let total = 0;
   for (let i = 0; i < meta.length; i++) {
     const toks = tokenize(`${meta[i].title || ""} ${meta[i].text || ""}`);
     docLen[i] = toks.length; total += toks.length;
+    const tt = tokenize(meta[i].title);
+    if (tt.length >= 2 && tt.length <= MAX_TITLE_NGRAM) { const k = tt.join(" "); (byTitle.get(k) || byTitle.set(k, []).get(k)).push(i); }
     const tf = new Map();
     for (const t of toks) tf.set(t, (tf.get(t) || 0) + 1);
     for (const [t, c] of tf) {
@@ -101,7 +106,7 @@ export function buildLexicalIndex(meta) {
     for (let j = 0; j < a.length; j += 2) { ids[j / 2] = a[j]; tf[j / 2] = Math.min(a[j + 1], 65535); }
     post.set(t, { ids, tf });
   }
-  return { post, docLen, avgLen: total / (meta.length || 1), n: meta.length };
+  return { post, docLen, avgLen: total / (meta.length || 1), n: meta.length, byTitle };
 }
 
 /** The query terms the lexical index scores: deduped, no stopwords, no ubiquitous terms. */
@@ -138,8 +143,20 @@ export function lexicalSearch(lex, query, n = LEXICAL_POOL, maxDfRatio = MAX_DF_
  * Candidates come from the postings of the lexical terms, so the check is cheap.
  */
 export function titleMatches(lex, meta, query, maxDfRatio = MAX_DF_RATIO) {
-  const q = new Set(tokenize(query));
+  const qt = tokenize(query);
+  const q = new Set(qt);
   const out = new Set();
+  // A multi-word title typed as a phrase is a match even when every word of it is common:
+  // "requisiti skill del Damage Control II" has no rare term (damage, control, ii are
+  // everywhere), so the rule below never looked at the module's record and, once its
+  // embedding no longer happened to be in the dense pool, the record was gone.
+  if (lex.byTitle) for (let n = Math.min(MAX_TITLE_NGRAM, qt.length); n >= 2; n--) {
+    for (let i = 0; i + n <= qt.length; i++) {
+      const gram = qt.slice(i, i + n);
+      if (gram.every((t) => STOP.has(t))) continue;   // "eve online" is in every question
+      for (const d of lex.byTitle.get(gram.join(" ")) || []) out.add(d);
+    }
+  }
   for (const t of lexicalTerms(lex, query, maxDfRatio)) {
     for (const d of lex.post.get(t).ids) {
       if (out.has(d)) continue;
@@ -205,14 +222,21 @@ function cos(index, a, b) {
  * waits behind every
  * non-duplicate. Deferred docs only come back if there aren't k distinct ones.
  */
-export function diversify(index, ranked, k, { dupSim = DUP_SIM, maxDup = MAX_DUP, maxPerPage = MAX_PER_PAGE } = {}) {
+export function diversify(index, ranked, k, o = {}) {
+  const { dupSim = DUP_SIM, maxDup = MAX_DUP, maxPerPage = MAX_PER_PAGE } = o;
   const kept = [], deferred = [], perPage = new Map();
+  let topPage;
   // Older index releases carry no `source`; only SDE chunks have no URL there.
   const src = (d) => index.meta[d].source || (index.meta[d].url ? "web" : "ccp_sde");
   for (const d of ranked) {
     if (kept.length >= k) break;
     const page = index.meta[d].url;   // SDE records (no URL) are one record each
-    if (page && (perPage.get(page) || 0) >= maxPerPage) { deferred.push(d); continue; }
+    // The best-ranked page may give a second chunk: "che efficienza ha il reprocessing nelle
+    // stazioni NPC?" got the intro chunk of EVE Uni's Reprocessing page, and the base yield
+    // (50%) was in the next one — four chat models missed it.
+    if (page && topPage === undefined) topPage = page;
+    const cap = page === topPage ? Math.max(maxPerPage, o.topPageChunks ?? TOP_PAGE_CHUNKS) : maxPerPage;
+    if (page && (perPage.get(page) || 0) >= cap) { deferred.push(d); continue; }
     let dups = 0;
     for (const s of kept) if (src(s) === src(d) && cos(index, d, s) >= dupSim && ++dups >= maxDup) break;
     if (dups >= maxDup) { deferred.push(d); continue; }
