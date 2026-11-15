@@ -10,7 +10,9 @@ set -euo pipefail
 if command -v podman >/dev/null 2>&1; then RT=podman; else RT=docker; fi
 echo "Runtime container: $RT"
 
-QDRANT_IMG="docker.io/qdrant/qdrant:latest"
+# Pinned versions (the ones in use); bump deliberately. Ports bound to loopback only.
+QDRANT_IMG="docker.io/qdrant/qdrant:v1.18.2"
+OLLAMA_VERSION="0.30.11"
 
 # --- GPU detection ---------------------------------------------------------
 detect_gpu() {
@@ -38,7 +40,7 @@ amd_hsa_override() {
 GPU="$(detect_gpu)"
 echo "GPU rilevata: $GPU"
 
-OLLAMA_IMG="docker.io/ollama/ollama:latest"
+OLLAMA_IMG="docker.io/ollama/ollama:${OLLAMA_VERSION}"
 GPU_ARGS=()
 case "$GPU" in
   nvidia)
@@ -46,7 +48,7 @@ case "$GPU" in
     if [ "$RT" = podman ]; then GPU_ARGS=(--device nvidia.com/gpu=all); else GPU_ARGS=(--gpus all); fi
     ;;
   amd)
-    OLLAMA_IMG="docker.io/ollama/ollama:rocm"
+    OLLAMA_IMG="docker.io/ollama/ollama:${OLLAMA_VERSION}-rocm"
     GPU_ARGS=(--device /dev/kfd --device /dev/dri)
     if [ "$RT" = podman ]; then GPU_ARGS+=(--group-add keep-groups --security-opt seccomp=unconfined)
     else GPU_ARGS+=(--group-add video --group-add render); fi
@@ -61,7 +63,8 @@ esac
 # --- Qdrant ----------------------------------------------------------------
 if ! $RT ps --format '{{.Names}}' | grep -q '^capsuleers-qdrant$'; then
   echo "Avvio Qdrant…"
-  $RT run -d --name capsuleers-qdrant --network host \
+  $RT run -d --name capsuleers-qdrant \
+    -p 127.0.0.1:6333:6333 -p 127.0.0.1:6334:6334 \
     -v capsuleers_qdrant:/qdrant/storage "$QDRANT_IMG"
 else
   echo "Qdrant già attivo."
@@ -70,7 +73,7 @@ fi
 # --- Ollama ----------------------------------------------------------------
 if ! $RT ps --format '{{.Names}}' | grep -q '^capsuleers-ollama$'; then
   echo "Avvio Ollama ($OLLAMA_IMG)…"
-  $RT run -d --name capsuleers-ollama -p 11434:11434 \
+  $RT run -d --name capsuleers-ollama -p 127.0.0.1:11434:11434 \
     -e OLLAMA_KEEP_ALIVE=-1 \
     "${GPU_ARGS[@]}" \
     -v capsuleers_ollama:/root/.ollama "$OLLAMA_IMG"
