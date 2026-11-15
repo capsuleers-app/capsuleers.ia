@@ -52,10 +52,18 @@ export function assetPaths() { return { modelsDir: MODELS_DIR, dataDir: DATA }; 
 // IA_CONTEXT_CHARS / IA_CHAT_CTX / IA_TOP_K: measurement knobs for tools/eval-answers.mjs
 // (how much a bigger context buys on a given model); the app never sets them.
 const envInt = (k, d) => { const n = parseInt(process.env[k] || "", 10); return Number.isFinite(n) && n > 0 ? n : d; };
-const DIM = 1024, TOP_K = envInt("IA_TOP_K", 12), MAX_CONTEXT_CHARS = envInt("IA_CONTEXT_CHARS", 6000);
+const DIM = 1024, TOP_K = envInt("IA_TOP_K", 12);
+// Context window (tokens) and sources budget (chars). A wider window was measured and NOT made
+// the default: with Gemma 4 12B, 8192/12000 scored 134/139 against 132/139 at 4096/6000, but
+// the prompt is read at ~520 tokens/s on a 12 GB card, so twice the sources is ~2.7 s more
+// before the first word. IA_CHAT_CTX / IA_CONTEXT_CHARS remain to measure it on other setups.
+const CTX_BASE = { tokens: 4096, chars: 6000 };
+let chatCtx = envInt("IA_CHAT_CTX", CTX_BASE.tokens), contextChars = envInt("IA_CONTEXT_CHARS", CTX_BASE.chars);
 // A question that leans on the previous turn: opens with a conjunction or carries a pronoun /
 // ellipsis with no subject of its own ("e la sua versione navy?", "which of the two…", "its statics").
-const FOLLOW_UP = /^\s*(?:e|ed|and|but|ma|invece|what\s+about|how\s+about|e\s+per|and\s+for|quanto|quando\s+è)\b|\b(?:su[oaie]|sue|suoi|quest[oaie]|quell[oaie]|stess[oaie]|delle\s+due|dei\s+due|tra\s+i\s+due|its|it|they|them|their|that\s+one|those|these|of\s+the\s+two|the\s+same|the\s+one\s+before|quella\s+prima|il\s+precedente)\b/i;
+const FOLLOW_UP = /^\s*(?:e|ed|and|but|ma|invece|what\s+about|how\s+about|e\s+per|and\s+for|quanto|quando\s+è)\b|\b(?:su[oaie]|sue|suoi|quest[oaie]|quell[oaie]|stess[oaie]|delle\s+due|dei\s+due|tra\s+i\s+due|its|it|they|them|their|that\s+one|those|these|there|l[ìi]|l[àa]|ci\s+si|of\s+the\s+two|the\s+same|the\s+one\s+before|quella\s+prima|il\s+precedente)\b/i;
+// Questions that want an explanation / a guide / advice, as opposed to one fact.
+const EXPLAIN_Q = /\b(?:come\s+(?:si|funzion\w*|faccio|posso|devo)|spiega\w*|guida|differenz\w*|perch[eé]|consigli\w*|conviene|meglio|migliore|how\s+(?:do|does|to|can|should)|explain|guide|difference|why|what\s+should|best|better|tips?|worth)\b/i;
 // Min cosine similarity (new question vs the previous one) to consider the prior
 // turn relevant and include it as context. Too much history confuses the model, so
 // we keep at most ONE turn, and only when it's actually on-topic.
@@ -92,7 +100,7 @@ export function checkIndexCompat({ vecBytes, metaCount, sidecar } = {}) {
 }
 // Reduced chat context: less KV cache → ~2-4GB models fit (almost) entirely in GPU
 // even with other apps using VRAM. createChatContext() shrinks further if needed.
-const CHAT_CTX = envInt("IA_CHAT_CTX", 4096);
+const CHAT_CTX = CTX_BASE.tokens;   // what the per-model estimates (listModels) are computed for
 // Reasoning models (Qwen3.5, Gemma 4…) think before answering: left free they spent the whole
 // 1600-token cap on thoughts and returned an EMPTY answer after 30 s. The answer is grounded
 // in the retrieved context, so no thought budget at all.
@@ -103,7 +111,7 @@ const SYSTEM = `Sei un assistente esperto di EVE Online. Rispondi usando SOLO il
 - TERMINOLOGIA (tassativo): NON tradurre MAI i nomi di navi, oggetti, moduli, skill, luoghi e i termini di gioco di EVE: vanno lasciati ESATTAMENTE in inglese, come nel gioco e nel contesto. Esempi corretti: "Sovereignty Hub" (NON "Hub di Sovranità"), "Entosis Link", "relic site" e "data site" (NON "siti di reliquie/dati"), "Damage Control II", "high slot", "Sovereignty". Traduci solo il testo discorsivo attorno a questi nomi.
 - Scrivi in italiano CORRETTO e grammaticale: niente errori di ortografia né parole inventate (es. "alleanza" non "alianza", "schierare/deployare" non "deplofare"). Se non sei certo di una parola italiana, usane una più semplice e corretta.
 - QUANTITÀ E NUMERI (tassativo): quando il contesto riporta quantità, prezzi, tempi, percentuali o livelli (es. "3× Capital Capacitor Battery", "200× Life Support Backup Unit", "skill ... 3", ISK, ore), riportali SEMPRE ed ESATTAMENTE come nel contesto, senza ometterli né arrotondarli. In una lista di materiali/requisiti METTI la quantità davanti a OGNI voce (es. "3× Capital Capacitor Battery", non "Capital Capacitor Battery"). Non aggiungere descrizioni inventate non presenti nel contesto.
-- Usa SOLO le informazioni nel contesto. Se non bastano, dillo ("Non ho questa informazione nelle fonti"); non inventare. Sii conciso e preciso.
+- Usa SOLO le informazioni nel contesto. Se non bastano, dillo ("Non ho questa informazione nelle fonti"); non inventare. Sii preciso, senza giri di parole.
 - PRIMA di dire che l'informazione manca, rileggi TUTTI i blocchi fino all'ultimo: la risposta è spesso in un blocco in fondo, e quasi sempre in inglese e con parole diverse dalla domanda. Equivalenze: "droppare"/"dove si trova" = drop, loot, loot tables, found in, dropped by; "come si ottiene" = obtain, reward, Loyalty Store/LP store, blueprint, manufactured, sold by; un set "renamed"/"moved to" indica chi lo fornisce ADESSO. Se un blocco risponde anche solo in parte, usalo e cita la fonte.
 - GERARCHIA DELLE FONTI: ogni blocco del contesto è etichettato L1 (fonte primaria CCP: SDE, ESI, patch notes), L2 (dati ufficiali elaborati, es. EVE Ref), L3 (community strutturata, es. EVE University, EVE-Scout, eve-kill) o L4 (community generica, es. wiki Fandom). Se due blocchi si contraddicono, vale quello col livello PIÙ BASSO (L1 batte L2, L2 batte L3, L3 batte L4). Un dato numerico (valori, bonus, requisiti) va preso dal livello più basso che lo riporta.
 - DATE DELLE FONTI CCP: le patch notes e i dev blog CCP (L1) portano la data nel titolo e descrivono una modifica A QUELLA DATA, che può essere stata superata da una successiva. SDE ed ESI descrivono lo stato ATTUALE del gioco e prevalgono su di loro; fra due patch notes/dev blog in contraddizione vale il più recente. Quando citi una patch note, indica la sua data.
@@ -118,7 +126,7 @@ const SYSTEM_EN = `You are an expert EVE Online assistant. Answer using ONLY the
 - LANGUAGE: always answer in the language of the QUESTION. The question is in English: the WHOLE answer is in English, even when the sources or the labels of the context are in Italian. Never switch language midway.
 - TERMINOLOGY (mandatory): keep the names of ships, items, modules, skills, places and game terms EXACTLY as in the game and in the context.
 - QUANTITIES AND NUMBERS (mandatory): when the context gives quantities, prices, times, percentages or levels (e.g. "3× Capital Capacitor Battery", "skill ... 3", ISK, hours), report them ALWAYS and EXACTLY as in the context, never omitted or rounded. In a list of materials/requirements put the quantity in front of EVERY entry. Do not add descriptions that are not in the context.
-- Use ONLY the information in the context. If it is not enough, say so ("I don't have this information in the sources"); do not make things up. Be concise and precise.
+- Use ONLY the information in the context. If it is not enough, say so ("I don't have this information in the sources"); do not make things up. Be precise, no filler.
 - BEFORE saying the information is missing, re-read ALL the blocks down to the last one: the answer is often in a late block and in different words than the question (drop / loot / loot tables / found in / dropped by; obtain / reward / Loyalty Store / blueprint / manufactured / sold by; a set "renamed" or "moved to" tells who provides it NOW). If a block answers even in part, use it and cite the source.
 - SOURCE HIERARCHY: every context block is tagged L1 (primary CCP source: SDE, ESI, patch notes), L2 (processed official data, e.g. EVE Ref), L3 (structured community, e.g. EVE University, EVE-Scout, eve-kill) or L4 (general community, e.g. Fandom wikis). If two blocks contradict each other, the LOWER level wins (L1 beats L2, L2 beats L3, L3 beats L4). Take a number (values, bonuses, requirements) from the lowest level that reports it.
 - DATES OF CCP SOURCES: CCP patch notes and dev blogs (L1) carry their date in the title and describe a change AS OF THAT DATE, which a later one may have superseded. SDE and ESI describe the CURRENT game and prevail over them; between two contradicting patch notes/dev blogs the newer wins. When you cite a patch note, give its date.
@@ -181,7 +189,32 @@ let forcedIntel = null;            // intel pre-resolved from a disambiguation c
 // cleanly when the app closes while the model is still answering
 // (otherwise llama's native AsyncWorker blows up in Napi::Error → terminate).
 let activeAbort = null;
-let activeCtx = null;
+let activeCtx = null;   // truthy while a generation is in flight (cancel() waits on it)
+
+// The chat context lives as long as the model, not one question. A context created and
+// disposed per question re-evaluated the ~1 000 fixed tokens of the system prompt every time
+// (40% of a median prompt) and paid the allocation twice more for the two helper calls
+// (follow-up rewrite, English search query). Kept alive, node-llama-cpp reuses the evaluated
+// prefix that the new prompt shares with the previous one. IA_NO_CTX_REUSE=1 restores the old
+// behaviour, to measure the difference (tools/eval-answers.mjs prints the phase timings).
+const UTIL_CTX = 1536;
+let mainCtx = null, mainSeq = null, utilCtx = null, utilSeq = null;
+async function disposeContexts() {
+  for (const c of [mainCtx, utilCtx]) { if (c) { try { await c.dispose(); } catch { /* tearing down */ } } }
+  mainCtx = mainSeq = utilCtx = utilSeq = null;
+}
+/** Runs fn(sequence) on the persistent main / helper context (or a throwaway one). */
+async function withSequence(kind, fn) {
+  const size = kind === "main" ? chatCtx : UTIL_CTX;
+  if (process.env.IA_NO_CTX_REUSE) {
+    const ctx = await createChatContext(size);
+    try { return await fn(ctx.getSequence()); }
+    finally { try { await ctx.dispose(); } catch { /* already tearing down */ } }
+  }
+  if (kind === "main") { if (!mainSeq) { mainCtx = await createChatContext(size); mainSeq = mainCtx.getSequence(); } return fn(mainSeq); }
+  if (!utilSeq) { utilCtx = await createChatContext(size); utilSeq = utilCtx.getSequence(); }
+  return fn(utilSeq);
+}
 
 export function resetConversation() { history = []; convLang = null; pendingDisambiguation = null; forcedIntel = null; resetDoctrineMemory(); resetFitMemory(); }
 
@@ -212,6 +245,7 @@ export async function cancel() {
 // closing the app, so no native work is in flight when the JS environment dies.
 export async function shutdown() {
   try { await cancel(); } catch { /* best-effort */ }
+  await disposeContexts();
 }
 
 // Creates a chat context that tolerates scarce VRAM: if the requested size
@@ -232,6 +266,27 @@ async function createChatContext(size = CHAT_CTX) {
   throw lastErr;
 }
 
+// One short, low-temperature completion on the helper context (follow-up rewrite, English
+// search query). Cancellation is expected (app closing / new question) → "".
+async function helperPrompt(systemPrompt, prompt, maxTokens) {
+  activeCtx = true;
+  activeAbort = new AbortController();
+  const signal = activeAbort.signal;
+  try {
+    return await withSequence("util", async (seq) => {
+      const session = new LlamaChatSession({ contextSequence: seq, systemPrompt });
+      try { return await session.prompt(prompt, { maxTokens, temperature: 0.1, budgets: NO_THINK, signal }); }
+      finally { try { session.dispose(); } catch { /* */ } }
+    });
+  } catch (e) {
+    if (!signal.aborted) throw e;
+    return "";
+  } finally {
+    activeCtx = null;
+    activeAbort = null;
+  }
+}
+
 // Rewrites a follow-up into a standalone question using the history (for retrieval).
 async function condense(question) {
   if (history.length === 0) return question;
@@ -241,23 +296,9 @@ async function condense(question) {
   // the answer described another J-system.
   const h = history.slice(-2).map((t) => `Utente: ${t.q}\nAssistente: ${t.a.slice(0, 500)}`).join("\n");
   const subject = history[history.length - 1].ents?.length ? `\nSoggetto della conversazione: ${history[history.length - 1].ents.join(", ")}` : "";
-  const ctx = await createChatContext(1536);
-  activeCtx = ctx;
-  activeAbort = new AbortController();
-  const session = new LlamaChatSession({
-    contextSequence: ctx.getSequence(),
-    systemPrompt: "Riscrivi l'ultima domanda dell'utente come domanda autonoma e completa, risolvendo i riferimenti alla conversazione precedente: pronomi e sottintesi (\"la sua\", \"its\", \"quella\", \"e per…\") vanno sostituiti col NOME esatto di nave, oggetto, luogo o argomento di cui si sta parlando. Se la domanda è già autonoma e cambia argomento, lasciala com'è. Mantieni la lingua originale. Rispondi SOLO con la domanda riscritta, niente altro.",
-  });
-  let out = "";
-  try {
-    out = await session.prompt(`Conversazione:\n${h}${subject}\n\nUltima domanda: ${question}`, { maxTokens: 80, temperature: 0.1, budgets: NO_THINK, signal: activeAbort.signal });
-  } catch (e) {
-    if (!activeAbort.signal.aborted) throw e;  // expected cancellation → fall back to the original question
-  } finally {
-    try { await ctx.dispose(); } catch { /* already tearing down */ }
-    activeCtx = null;
-    activeAbort = null;
-  }
+  const out = await helperPrompt(
+    "Riscrivi l'ultima domanda dell'utente come domanda autonoma e completa, risolvendo i riferimenti alla conversazione precedente: pronomi e sottintesi (\"la sua\", \"its\", \"quella\", \"e per…\") vanno sostituiti col NOME esatto di nave, oggetto, luogo o argomento di cui si sta parlando. Se la domanda è già autonoma e cambia argomento, lasciala com'è. Mantieni la lingua originale. Rispondi SOLO con la domanda riscritta, niente altro.",
+    `Conversazione:\n${h}${subject}\n\nUltima domanda: ${question}`, 80);
   return out.trim() || question;
 }
 
@@ -265,23 +306,9 @@ async function condense(question) {
 // the RMT rules, "navi logistiche T2" the Transport Ships). A short English search query
 // written by the chat model is searched alongside the original (retrieval.mjs fuses both).
 export async function searchRewrite(question) {
-  const ctx = await createChatContext(1024);
-  activeCtx = ctx;
-  activeAbort = new AbortController();
-  const session = new LlamaChatSession({
-    contextSequence: ctx.getSequence(),
-    systemPrompt: "Rewrite the user's EVE Online question as a short English search query (max 12 words) for the game's wiki and patch notes. Keep ship, item, skill and place names exactly as in the game. Reply ONLY with the query.",
-  });
-  let out = "";
-  try {
-    out = await session.prompt(question, { maxTokens: 40, temperature: 0.1, budgets: NO_THINK, signal: activeAbort.signal });
-  } catch (e) {
-    if (!activeAbort.signal.aborted) throw e;
-  } finally {
-    try { await ctx.dispose(); } catch { /* already tearing down */ }
-    activeCtx = null;
-    activeAbort = null;
-  }
+  const out = await helperPrompt(
+    "Rewrite the user's EVE Online question as a short English search query (max 12 words) for the game's wiki and patch notes. Keep ship, item, skill and place names exactly as in the game. Reply ONLY with the query.",
+    question, 40);
   return out.trim().replace(/^["']|["']$/g, "").split("\n")[0].slice(0, 200);
 }
 
@@ -736,8 +763,9 @@ async function loadChatModel(file) {
   if (!fs.existsSync(modelPath)) throw new Error(`Modello non trovato: ${file}`);
   // Free the current model FIRST: if it stayed loaded, the two would compete for
   // VRAM during the overlap and the new one would get few/zero layers in GPU.
+  await disposeContexts();
   if (chatModel) { const prev = chatModel; chatModel = null; try { await prev.dispose(); } catch { /* tearing down */ } }
-  chatModel = await llama.loadModel({ modelPath, gpuLayers: { fitContext: { contextSize: CHAT_CTX } } });
+  chatModel = await llama.loadModel({ modelPath, gpuLayers: { fitContext: { contextSize: chatCtx + UTIL_CTX } } });
   currentModelFile = file;
 }
 
@@ -794,6 +822,9 @@ export async function init(onStatus = () => {}) {
 
 /** Answers the question; onToken(text) for streaming. Returns {answer, sources}. */
 export async function ask(question, onToken = () => {}, uiLang = null) {
+  // Phase timings (ms), returned as `timing`: where an answer's seconds go.
+  const timing = {}; let tPrev = Date.now();
+  const mark = (k) => { const n = Date.now(); timing[k] = (timing[k] || 0) + (n - tPrev); tPrev = n; };
   // 0. Disambiguation follow-up: if last turn we asked which entity the user meant,
   //    try to read this turn as the choice. A matched choice pre-resolves the intel
   //    (forcedIntel) and rewrites the query to the canonical "chi è <name>" so the rest
@@ -844,35 +875,60 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   //    condensing it against the previous turn pollutes the retrieval query (and would graft the
   //    last turn's ship onto it). Otherwise: condense the follow-up.
   const selfContained = /https?:\/\/|\bkill\s?mail\b|\b\d{6,}\b/i.test(question);
-  const standalone = (isFit && fitShip) ? `${fitShip} nave ruolo bonus` : (selfContained ? question : await condense(question));
+  const prevTurn = history[history.length - 1];
+  const followUp = !!prevTurn && !isFit && !selfContained && FOLLOW_UP.test(question);
+  // The rewrite is an LLM call (~0.5-1 s): only for a question that leans on the conversation —
+  // a follow-up marker, or the same topic as the previous turn (embedding similarity). A new
+  // topic goes straight to retrieval as typed.
+  // "che bonus ai droni ha?" after two turns on the Gila has no pronoun and little similarity:
+  // a question that names no entity of its own also goes through the rewrite (with only the
+  // marker/similarity gate the model listed every drone bonus in the game).
+  let leans = followUp || (!!prevTurn && !isFit && !selfContained && !namedEntities(lexIndex, index.meta, expandQuery(question)).length);
+  if (!leans && prevTurn?.vec && !isFit && !selfContained) {
+    const { vector: v0 } = await embedCtx.getEmbeddingFor(question);
+    leans = cosine(v0, prevTurn.vec) >= HIST_SIM;
+  }
+  mark("embed0");
+  const standalone = (isFit && fitShip) ? `${fitShip} nave ruolo bonus` : (leans ? await condense(question) : question);
+  mark("condense");
+  // Live lookups that don't depend on the retrieval start now and run while the model writes
+  // the search query and the index is searched (they were awaited one after the other).
+  const pTotal = maybeTotalCost(question).catch(() => "");
+  const pMcp = maybeMcp(question, standalone).catch(() => ({ text: "", entities: [] }));
+  const pEsi = maybeEsi(question).catch(() => ({ text: "", entities: [] }));
+  const pScout = maybeScout(standalone).catch(() => ({ text: "", entities: [] }));
   let retrievalQuery = expandQuery(standalone);
   // What this turn is about (whole titles named in the query: "Vexor", "Thera"). A follow-up
   // whose rewrite still names nothing ("which of the two is better for PvE?") inherits the
   // previous turn's subject, for the retrieval and for the next turn.
-  const prevTurn = history[history.length - 1];
   let ents = namedEntities(lexIndex, index.meta, retrievalQuery);
-  const followUp = !!prevTurn && !isFit && !selfContained && FOLLOW_UP.test(question);
   if (followUp && !ents.length && prevTurn.ents?.length) {
     retrievalQuery = `${retrievalQuery} (${prevTurn.ents.join(", ")})`;
     ents = prevTurn.ents;
   }
   const { vector } = await embedCtx.getEmbeddingFor(retrievalQuery);
+  mark("embed");
   // English search query for an Italian question (sources are English): fused with the original.
   // Not for a pasted fit / self-contained killmail query, nor for English questions.
   let rewrites;
-  if (!process.env.IA_NO_REWRITE && !isFit && !selfContained && detectLang(standalone, "en") === "it") {
+  // OFF by default (IA_REWRITE=1 turns it on): measured three times on eval/answers.jsonl it
+  // moved the score by ±1-2 questions (124/125 on Qwen3 4B, 127/125 on Gemma 4 12B: the
+  // run-to-run noise) for ~0.5-0.9 s more on every Italian question.
+  if (process.env.IA_REWRITE && !isFit && !selfContained && detectLang(standalone, "en") === "it") {
     try { const en = await searchRewrite(standalone); if (en && en.toLowerCase() !== standalone.toLowerCase()) rewrites = [en]; }
     catch { /* the plain retrieval still works */ }
   }
+  mark("rewrite");
   const hits = await topK(vector, retrievalQuery, { rewrites });
+  mark("retrieve");
 
   // 3. Live price / intel, if the question calls for it (uses the original question
   //    to preserve entity proper names).
   const priceInfo = await maybePrice(standalone, hits);
-  const totalCost = await maybeTotalCost(question);
+  const totalCost = await pTotal;
   // eve-kill MCP analytics (dossier archetypes, route danger, war report, wingmates,
   // battles, meta, killmail story/forensics…). { text, entities, source, sourceTitle }.
-  let mcp = await maybeMcp(question, standalone);
+  let mcp = await pMcp;
   // EVE Workbench drill-down ("specifiche del #2") — folds into `mcp` like other live blocks.
   if (!mcp.text) { const wb = await maybeWorkbench(question); if (wb.text) mcp = wb; }
   // EVE Workbench fit search. The ship is taken from the RAG ship doc (reliable even when named
@@ -900,10 +956,10 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // A matched MCP relational/analytic intent (e.g. "chi uccide X", "X vs Y") takes
   // precedence over the generic killboard intel for the same name → don't run both.
   const intel = mcp.text ? { text: "", entities: [], kills: [] } : await maybeIntel(question);  // { text, entities, kills }
-  const esi = await maybeEsi(question);      // { text, entities } — official Fenris Creations data
+  const esi = await pEsi;      // { text, entities } — official Fenris Creations data
   // Use the CONDENSED question for EVE-Scout so a follow-up ("and the closest to
   // Fountain?") keeps the Thera/Turnur context resolved by condense().
-  const scout = await maybeScout(standalone);  // { text, entities } — EVE-Scout connections
+  const scout = await pScout;  // { text, entities } — EVE-Scout connections
   // Answer/link language. A pasted fit is all-English game terms (→ follow the
   // system language). A follow-up keeps the conversation's language (so a short
   // "elencale" after an Italian turn doesn't flip to English). First turn: detect,
@@ -949,7 +1005,7 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   if (!mcp.text) for (const [i, h] of hits.entries()) {
     let block = `[${tierTag(h)} · ${h.type}] ${h.title}\n${compactText(h.text, `${question} ${standalone}`)}`;
     if (!siblingsDone && i < 3) { const sib = siblingSections(h, `${question} ${standalone}`, qLang); if (sib) { block += sib; siblingsDone = true; } }
-    if (used + block.length > MAX_CONTEXT_CHARS) continue;
+    if (used + block.length > contextChars) continue;
     chosen.push([tierOf(h).tier, i, block]); used += block.length;
   }
   chosen.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
@@ -985,7 +1041,11 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   ].filter(([t]) => t).map(([t, tag]) => `[${tag}]\n${t}`).join("\n\n");
   // End-of-prompt directives (highest salience), one per active source. Gating +
   // IT/EN text live together, so adding a source is one row here.
+  const explain = EXPLAIN_Q.test(question);
   const directives = [
+    { on: explain && !fitInfo && !mcp.text,
+      it: "\nQuesta domanda chiede una SPIEGAZIONE o un CONSIGLIO: rispondi in modo COMPLETO e ordinato (passaggi o punti elenco), riportando condizioni, eccezioni e numeri presenti nel contesto; non tralasciare parti utili delle fonti.",
+      en: "\nThis question asks for an EXPLANATION or ADVICE: answer COMPLETELY and in order (steps or bullet points), with the conditions, exceptions and numbers found in the context; do not leave out useful parts of the sources." },
     { on: !!liveIntel,
       it: "\nIMPORTANTE: il CONTESTO include DATI LIVE (ESI = L1, prezzi EVE Ref = L2, mercato di Jita Fuzzwork / killboard / EVE-Scout = L3): rispondi usandoli, NON dire che l'informazione manca; se contraddicono un altro blocco, vale il livello più basso. I due prezzi NON si contraddicono: EVE Ref è una media globale di riferimento, Fuzzwork è il prezzo attuale a Jita — per quanto costa comprare/vendere adesso usa Jita, e riportali entrambi se presenti. Non scrivere le etichette L1/L2/L3 nella risposta: nomina la fonte (ESI, EVE Ref, Jita).",
       en: "\nIMPORTANT: the CONTEXT includes LIVE DATA (ESI = L1, EVE Ref prices = L2, Fuzzwork Jita market / killboard / EVE-Scout = L3): answer using it, do NOT say the information is missing; if it contradicts another block, the lower level wins. The two prices do NOT contradict each other: EVE Ref is a global reference average, Fuzzwork is the current Jita price — for what it costs to buy/sell now use Jita, and report both when present. Do not write the L1/L2/L3 labels in the answer: name the source (ESI, EVE Ref, Jita)." },
@@ -1021,29 +1081,33 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // 5. Generation (GPU, streaming). Cancelable via AbortSignal: if the app closes
   //    while the model is answering, cancel() interrupts the prompt and here we dispose
   //    the context in an orderly way — no native work in flight once teardown is done.
-  const ctx = await createChatContext(CHAT_CTX);
-  activeCtx = ctx;
+  mark("live");
+  activeCtx = true;
   activeAbort = new AbortController();
-  const session = new LlamaChatSession({ contextSequence: ctx.getSequence(), systemPrompt: isFit ? SYSTEM_FIT : (qLang === "en" ? SYSTEM_EN : SYSTEM) });
+  const signal = activeAbort.signal;
   let answer = "";
   let aborted = false;
   try {
-    // High cap so answers finish at EOS instead of being cut mid-sentence; the
-    // 4096 context leaves room for prompt + a long answer. (No real Q&A answer
-    // reaches this, so it effectively means "generate until complete".)
-    await session.prompt(userMsg, {
-      maxTokens: 1600, temperature: 0.2, budgets: NO_THINK,
-      signal: activeAbort.signal,
-      onTextChunk: (t) => { answer += t; onToken(t); },
+    await withSequence("main", async (seq) => {
+      const session = new LlamaChatSession({ contextSequence: seq, systemPrompt: isFit ? SYSTEM_FIT : (qLang === "en" ? SYSTEM_EN : SYSTEM) });
+      try {
+        // High cap so answers finish at EOS instead of being cut mid-sentence (no real Q&A
+        // answer reaches it, so it effectively means "generate until complete").
+        await session.prompt(userMsg, {
+          maxTokens: 1600, temperature: 0.2, budgets: NO_THINK,
+          signal,
+          onTextChunk: (t) => { if (!answer) mark("firstToken"); answer += t; onToken(t); },
+        });
+      } finally { try { session.dispose(); } catch { /* */ } }
     });
   } catch (e) {
     // Cancellation is expected (close/new question): we keep the partial answer.
-    if (activeAbort.signal.aborted) aborted = true; else throw e;
+    if (signal.aborted) aborted = true; else throw e;
   } finally {
-    try { await ctx.dispose(); } catch { /* already tearing down */ }
     activeCtx = null;
     activeAbort = null;
   }
+  mark("generate");
 
   // 5b. Doctrine-fit specs carry the verbatim example EFT (straight from the killmail).
   //     We attach it ourselves as a copy/paste-able code block AFTER generation:
@@ -1099,5 +1163,6 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // order a reader should trust them in. Stable sort keeps retrieval order within
   // a tier.
   sources = sources.map((x) => ({ ...x, tier: x.tier ?? tierOf(x).tier })).sort((a, b) => a.tier - b.tier);
-  return { answer: linked, sources, kills: (mcp.kills?.length ? mcp.kills : intel.kills), cards: mcp.cards || intel.card || fitSuggest || null };
+  mark("post");
+  return { answer: linked, sources, timing, kills: (mcp.kills?.length ? mcp.kills : intel.kills), cards: mcp.cards || intel.card || fitSuggest || null };
 }

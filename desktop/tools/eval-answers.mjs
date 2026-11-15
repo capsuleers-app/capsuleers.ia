@@ -57,6 +57,7 @@ console.log(`${file}${saved ? " (rescore)" : ""} · GPU ${info.gpu} · layer in 
 
 let pass = 0, ms = 0, chars = 0, nAsk = 0;
 const byCat = {};
+const phases = {};   // ms per pipeline phase, summed over every question (ask() → timing)
 for (const c of cases) {
   if (saved && !savedById.has(c.id)) continue;
   if (!saved) resetConversation();   // once per row: `turns` share one conversation
@@ -66,7 +67,8 @@ for (const c of cases) {
   for (const [i, turn] of turns.entries()) {
     const t = Date.now();
     const prev = saved ? savedById.get(c.id) : null;
-    const { answer } = prev ? { answer: prev.answers[i] ?? "" } : await ask(turn.q, () => {}, c.lang);
+    const { answer, timing } = prev ? { answer: prev.answers[i] ?? "" } : await ask(turn.q, () => {}, c.lang);
+    for (const [k, v] of Object.entries(timing || {})) phases[k] = (phases[k] || 0) + v;
     const dt = prev ? (prev.ms[i] ?? 0) : Date.now() - t;
     (outRows[outRows.length - 1]?.id === c.id ? outRows[outRows.length - 1] : outRows[outRows.push({ id: c.id, cat: c.cat, answers: [], ms: [] }) - 1]).answers.push(answer);
     outRows[outRows.length - 1].ms.push(dt); dtRow += dt; ms += dt; chars += answer.length; nAsk++;
@@ -88,6 +90,7 @@ const n = cases.length || 1;
 console.log("\nper categoria:");
 for (const [k, v] of Object.entries(byCat).sort()) console.log(`  ${k.padEnd(10)} ${v.pass}/${v.total}`);
 console.log(`\n${file}: ${pass}/${cases.length} corrette · ${(ms / n / 1000).toFixed(1)} s/riga in media`);
+if (Object.keys(phases).length) console.log("fasi (ms medi per domanda): " + Object.entries(phases).map(([k, v]) => `${k} ${Math.round(v / (nAsk || 1))}`).join(" · "));
 console.log(JSON.stringify({ model: file, pass, total: cases.length, byCat, avgSec: +(ms / n / 1000).toFixed(2), avgChars: Math.round(chars / (nAsk || 1)), gpuLayers: `${info.gpuLayers}/${info.totalLayers}` }));
 if (outFile) fs.writeFileSync(outFile, JSON.stringify({ model: file, info, env: { ctx: process.env.IA_CHAT_CTX || null, chars: process.env.IA_CONTEXT_CHARS || null }, rows: outRows }));
 if (saved) process.exit(0);
