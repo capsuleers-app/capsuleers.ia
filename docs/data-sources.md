@@ -14,7 +14,7 @@ prompt rule, cited-source chips).
 |---|---|---|
 | **L1** — primary | CCP itself: documentation, Support, SDE, ESI, patch notes, developer posts | SDE, patch notes + dev blogs since 2019 (dated), CCP Support, EVE Academy, the guides of CCP's developer docs (all indexed); ESI (live) |
 | **L2** — processed official data | tools that declare CCP/SDE/ESI provenance | EVE Ref (global reference prices), eve-fit-engine (fit analysis computed from the SDE, Pyfa parity) |
-| **L3** — structured community | EVE University, EVE Scout, Dotlan, Anoik.is, Ellatha, Fuzzwork, EVE-Kill, zKillboard, other specialised databases/tools | EVE University, Anoikis, EVE-Scout, eve-kill, Fuzzwork (live Jita 4-4 order book) |
+| **L3** — structured community | EVE University, EVE Scout, Dotlan, Anoik.is, Ellatha, Fuzzwork, EVE-Kill, zKillboard, other specialised databases/tools | EVE University, Anoikis, EVE-Scout, eve-kill, Fuzzwork (live Jita 4-4 order book), capsuleers.app articles, the Capsuleers slang glossary |
 | **L4** — general community | prose wikis and guides without a structured data model | EVE Wiki + Sisters Probe Wiki (Fandom), eve-survival, Riley (opt-in), EVE Workbench fits |
 
 Anoikis statics/effects are merged into the SDE `system` documents of J-space, so they ride at L1
@@ -47,6 +47,7 @@ link to them is labelled correctly if one ever appears):
 | **EVE Wiki** (eve.fandom.com, EN) | general EVE encyclopedia | static (CC-BY-SA) | ✅ indexed |
 | **Riley Entertainment** (static guides) | combat-site ship fits, COSMOS guides, hacking/relic/data loot stats | static (no explicit licence) | ⚠️ opt-in (`--riley`, never in `--all`) |
 | **eve-survival.org** | PVE mission guides (Wikka wiki) | static (licence not stated) | ✅ indexed |
+| **Capsuleers slang glossary** (`ingestion/capsuleers_ingestion/glossary/terms.json`) | player jargon (o7, scram, cyno, TiDi, crit hole…), EN + IT definitions | static, hand-written by the project | ✅ indexed (in the `--ccp` registry, source `capsuleers_glossary`, L3) |
 | **Anoikis** (anoikis.info) | system effects and wormhole statics (J-space) | semi-static | ✅ indexed |
 | **EVE Ref** (data.everef.net) | global reference prices (adjusted/average) | live | ✅ on-demand lookup (`/price`) |
 | **Fuzzwork** (market.fuzzwork.co.uk) | live Jita 4-4 order book: best sell / best buy + volume (aggregated from ESI) | live | ✅ on-demand, next to EVE Ref on price questions (5-min cache, the server's own expiry) |

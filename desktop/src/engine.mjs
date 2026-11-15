@@ -9,11 +9,11 @@ import { priceByName, jitaPrice, isKnownType, configureDataDir as pricesDataDir 
 import { intelFor, intelForCandidate } from "./intel.mjs";
 import { corpSummary, characterAffiliation, systemActivity } from "./esi.mjs";
 import { scoutConnections } from "./eve-scout.mjs";
-import { maybeMcp, resetDoctrineMemory } from "./mcp-intel.mjs";
+import { maybeMcp, isMechanicsQuestion, resetDoctrineMemory } from "./mcp-intel.mjs";
 import { maybeWorkbench, fitIntent, shipFromQuery, runFitSearch, resetFitMemory } from "./eveworkbench.mjs";
 import { linkify, detectLang, configureDataDir as linksDataDir } from "./links.mjs";
 import { tierOf, tierTag, bonusOf } from "./source-tiers.mjs";
-import { buildLexicalIndex, retrieve } from "./retrieval.mjs";
+import { buildLexicalIndex, retrieveAsync } from "./retrieval.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
@@ -96,6 +96,7 @@ const SYSTEM = `Sei un assistente esperto di EVE Online. Rispondi usando SOLO il
 - PRIMA di dire che l'informazione manca, rileggi TUTTI i blocchi fino all'ultimo: la risposta è spesso in un blocco in fondo, e quasi sempre in inglese e con parole diverse dalla domanda. Equivalenze: "droppare"/"dove si trova" = drop, loot, loot tables, found in, dropped by; "come si ottiene" = obtain, reward, Loyalty Store/LP store, blueprint, manufactured, sold by; un set "renamed"/"moved to" indica chi lo fornisce ADESSO. Se un blocco risponde anche solo in parte, usalo e cita la fonte.
 - GERARCHIA DELLE FONTI: ogni blocco del contesto è etichettato L1 (fonte primaria CCP: SDE, ESI, patch notes), L2 (dati ufficiali elaborati, es. EVE Ref), L3 (community strutturata, es. EVE University, EVE-Scout, eve-kill) o L4 (community generica, es. wiki Fandom). Se due blocchi si contraddicono, vale quello col livello PIÙ BASSO (L1 batte L2, L2 batte L3, L3 batte L4). Un dato numerico (valori, bonus, requisiti) va preso dal livello più basso che lo riporta.
 - DATE DELLE FONTI CCP: le patch notes e i dev blog CCP (L1) portano la data nel titolo e descrivono una modifica A QUELLA DATA, che può essere stata superata da una successiva. SDE ed ESI descrivono lo stato ATTUALE del gioco e prevalgono su di loro; fra due patch notes/dev blog in contraddizione vale il più recente. Quando citi una patch note, indica la sua data.
+- "ULTIMO/ATTUALE/RECENTE" (latest/current): vale la fonte DATATA più recente del contesto, confrontata con la DATA DI OGGI; di' sempre la sua data.
 - Le etichette L1/L2/L3/L4 servono SOLO a te per pesare le fonti: NON scriverle nella risposta. Se serve, nomina la fonte (es. "secondo le patch notes del 2024-06-07", "il Support di CCP").`;
 
 // System prompt for FIT analysis: unlike the strict factual one, theorycrafting
@@ -227,6 +228,30 @@ async function condense(question) {
   return out.trim() || question;
 }
 
+// The sources are English, the questions often Italian ("fare ISK da nuovo giocatore" pulled
+// the RMT rules, "navi logistiche T2" the Transport Ships). A short English search query
+// written by the chat model is searched alongside the original (retrieval.mjs fuses both).
+export async function searchRewrite(question) {
+  const ctx = await createChatContext(1024);
+  activeCtx = ctx;
+  activeAbort = new AbortController();
+  const session = new LlamaChatSession({
+    contextSequence: ctx.getSequence(),
+    systemPrompt: "Rewrite the user's EVE Online question as a short English search query (max 12 words) for the game's wiki and patch notes. Keep ship, item, skill and place names exactly as in the game. Reply ONLY with the query.",
+  });
+  let out = "";
+  try {
+    out = await session.prompt(question, { maxTokens: 40, temperature: 0.1, signal: activeAbort.signal });
+  } catch (e) {
+    if (!activeAbort.signal.aborted) throw e;
+  } finally {
+    try { await ctx.dispose(); } catch { /* already tearing down */ }
+    activeCtx = null;
+    activeAbort = null;
+  }
+  return out.trim().replace(/^["']|["']$/g, "").split("\n")[0].slice(0, 200);
+}
+
 // Estimated cost of a fit (sum of average prices of ship + modules). Requires internet.
 async function fitCost(fit) {
   let total = 0, any = false;
@@ -257,6 +282,8 @@ export function intelQuery(q) {
   // `stat` needs a word end: without it "STATus di sicurezza" / "security STATus"
   // read as a stats request and the rest of the sentence went to eve-kill as a name.
   if (!/\b(killboard|killmail|intel|kills?|losses|perdite|stat(?:s|istiche|istics?)?\b|battagli|pvp|efficien)/i.test(q)) return "";
+  // "come funzionano le kill right?": the word after the trigger is not a name.
+  if (isMechanicsQuestion(q)) return "";
   m = q.match(/["']([^"']{2,48})["']/);
   if (m) return _cleanName(m[1]);
   // everything after the trigger, then iteratively strips leading preps/articles/entity-types
@@ -494,8 +521,21 @@ function loadIndex() {
 }
 
 // Hybrid retrieval (dense + BM25, near-duplicates capped): see retrieval.mjs.
-function topK(query, text) {
-  return retrieve(index, lexIndex, query, text, TOP_K).map((i) => index.meta[i]);
+async function topK(query, text, o = {}) {
+  const embed = async (t) => (await embedCtx.getEmbeddingFor(t)).vector;
+  return (await retrieveAsync(index, lexIndex, query, text, TOP_K, { embed, ...o })).map((i) => index.meta[i]);
+}
+
+// SDE ship records carry "Requisiti skill (albero completo, prerequisiti ricorsivi)", 500-1500
+// chars of nested skills: with it the Archon record no longer fit the 6000-char budget on a
+// question that has nothing to do with skills. Left out unless the question is about
+// skills / requirements / training / flying the ship (the eval's Caracal, Gila, DC2 rows).
+const SKILL_Q = /\b(?:skills?|requisit\w*|prerequisit\w*|serv(?:e|ono)\s+per|train\w*|addestr\w*|allen\w*|pilotar\w*|guidar\w*|fly|flying|requires?|required|certificat\w*)\b/i;
+// Both record layouts: the nested tree of older index releases and the flat lists
+// ("Skill richieste direttamente: …" / "Tutte le skill necessarie …") of newer ones.
+const SKILL_TREE = /\nRequisiti skill[^\n]*\n(?:(?:[ \t]*- |Skill richieste direttamente:|Tutte le skill necessarie)[^\n]*(?:\n|$))+/;
+export function compactText(text, question) {
+  return SKILL_Q.test(question) ? text : text.replace(SKILL_TREE, "\n");
 }
 
 // ── Chat model management (user choice + performance estimate) ────────────
@@ -729,7 +769,14 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   const standalone = (isFit && fitShip) ? `${fitShip} nave ruolo bonus` : (selfContained ? question : await condense(question));
   const retrievalQuery = expandQuery(standalone);
   const { vector } = await embedCtx.getEmbeddingFor(retrievalQuery);
-  const hits = topK(vector, retrievalQuery);
+  // English search query for an Italian question (sources are English): fused with the original.
+  // Not for a pasted fit / self-contained killmail query, nor for English questions.
+  let rewrites;
+  if (!process.env.IA_NO_REWRITE && !isFit && !selfContained && detectLang(standalone, "en") === "it") {
+    try { const en = await searchRewrite(standalone); if (en && en.toLowerCase() !== standalone.toLowerCase()) rewrites = [en]; }
+    catch { /* the plain retrieval still works */ }
+  }
+  const hits = await topK(vector, retrievalQuery, { rewrites });
 
   // 3. Live price / intel, if the question calls for it (uses the original question
   //    to preserve entity proper names).
@@ -807,7 +854,7 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
   // not the end of the context.
   const chosen = [];
   if (!mcp.text) for (const [i, h] of hits.entries()) {
-    const block = `[${tierTag(h)} · ${h.type}] ${h.title}\n${h.text}`;
+    const block = `[${tierTag(h)} · ${h.type}] ${h.title}\n${compactText(h.text, `${question} ${standalone}`)}`;
     if (used + block.length > MAX_CONTEXT_CHARS) continue;
     chosen.push([tierOf(h).tier, i, block]); used += block.length;
   }
@@ -871,6 +918,7 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
     // data, i.e. L2 — same level as EVE Ref, above every community guide.
     + (fitInfo ? `[L2 · eve-fit-engine — ANALISI DEL FIT, dati autorevoli]\n${fitInfo}\n\n` : "")
     + `${context}\n`
+    + `DATA DI OGGI: ${new Date().toISOString().slice(0, 10)}\n`
     + `DOMANDA: ${question}\n\n${(LANG_DIRECTIVE[qLang] || LANG_DIRECTIVE.en)}${directiveText}`;
   // Dev aid: the exact prompt the model sees (tools/ and manual debugging only).
   if (process.env.IA_DEBUG_PROMPT) console.error(`\n----- PROMPT -----\n${userMsg}\n----- /PROMPT -----`);

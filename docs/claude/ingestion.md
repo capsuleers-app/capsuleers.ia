@@ -64,6 +64,9 @@ SDE-only swap, which would drop wiki/missions):
   the site answers 200 to any /eve-academy path (a ~37 KB not-found shell), so each page probes a few
   candidates and accepts only a real render; 21 of 76 pages have a URL, the rest (ship primers,
   activity cards) are cited with the Academy home.
+  The registry also holds `glossary` ([`glossary/`](../../ingestion/capsuleers_ingestion/glossary/)): player slang
+  (129 terms, EN+IT, hand-written `terms.json`, one Document per term, title = term, `source=capsuleers_glossary`,
+  `type=glossary`, no URL) → **L3, not dated**; stamp = hash of the entry. Tests: `tests/test_glossary.py`.
 All four purge a doc's old chunks via `index.delete_by_doc_ids` before re-insert.
 **An SDE bump forces a FULL rebuild (~25 min, wiki + missions re-crawled), and one failed
 wiki fetch aborts all of it.** `wiki/api.py::api_get` retries 6× with 1-2-4-8-16 s backoff
@@ -71,6 +74,12 @@ wiki fetch aborts all of it.** `wiki/api.py::api_get` retries 6× with 1-2-4-8-1
 (`titles=Oracle`) killed the rebuild for SDE 3528119 and the published index stayed on 3503375
 while `rag-check` kept reporting the new build as "seen". After an SDE bump, check that an
 `index-<date>` release actually shipped — a green `rag-check` only means it was *detected*.
+SDE type records (`sde/parse.py`, `sde/derived.py`) are written for a 4B model that must not compute: role bonuses and
+per-skill-level bonuses on separate lines; skills as a contiguous block starting with the line `Requisiti skill` (direct
++ flat deduplicated list, max level; the desktop engine drops that block when the question is not about skills);
+"Valori derivati" row from base attributes only (ships: align = ln2·inertia(attr 70)·types.mass/500000, warp = attr 1281×600,
+jump range ×2.0 for JDC V; drones/weapons with own damage: Σdamage×multiplier, DPS = per shot / RoF attr 51). SDE unit 11
+is m/s (named "Acceleration" but it is a speed). Tests: `tests/test_sde_records.py`.
 `sde/*` (per-domain parsers: `parse`, `dogma`, `universe`, `industry`, `social`, `facilities`,
 `sites`, `wormholes`), `wiki/` (`api` shared client, `scrape` full+per-title crawler,
 `recentchanges` detector; rate-limited, CC-BY-SA), `missions/eve_survival.py` (full + per-name

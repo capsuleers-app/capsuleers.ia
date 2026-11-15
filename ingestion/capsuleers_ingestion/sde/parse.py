@@ -12,6 +12,7 @@ from collections.abc import Iterator
 
 from ..models import Document
 from .common import Names, clean, fmt_num
+from .derived import derived_line
 from .source import Sde, en
 
 CATEGORY_TO_DOCTYPE = {
@@ -31,10 +32,12 @@ _CHAR_ATTR_LEGACY = {164: "Carisma", 165: "Intelligenza", 166: "Memoria",
                      167: "Percezione", 168: "Forza di volontà"}
 
 _UNIT_SYMBOL = {
-    1: "m", 9: "m³", 10: "m/s", 11: "m/s²", 102: "mm", 103: "MPa", 104: "x",
+    1: "m", 2: "kg", 9: "m³", 10: "m/s", 11: "m/s", 102: "mm", 103: "MPa", 104: "x",
     105: "%", 106: "tf", 107: "MW", 113: "HP", 114: "GJ", 121: "%", 125: "N",
-    126: "ly", 127: "%", 129: "h", 135: "AU",
+    126: "ly", 127: "%", 128: "Mbit/s", 129: "h", 135: "AU", 144: "AU/s",
 }
+# Note: SDE unit 11 is named "Acceleration" but its symbol is m/sec (Maximum Velocity
+# uses it): it is a speed, NOT m/s².
 _UNIT_GROUP, _UNIT_TYPE, _UNIT_ATTR = 115, 116, 119
 _UNIT_MS, _UNIT_RESONANCE = 101, 108
 
@@ -89,11 +92,11 @@ class _Ctx:
         for ship_id, tb in sde.by_key("typeBonus").items():
             items = []
             for rb in tb.get("roleBonuses", []):
-                items.append((rb.get("bonus"), clean(rb.get("bonusText")), None))
+                items.append((rb.get("bonus"), clean(rb.get("bonusText")), None, rb.get("unitID")))
             for per_skill in tb.get("types", []):
                 skill_id = per_skill.get("_key")
                 for b in per_skill.get("_value", []):
-                    items.append((b.get("bonus"), clean(b.get("bonusText")), skill_id))
+                    items.append((b.get("bonus"), clean(b.get("bonusText")), skill_id, b.get("unitID")))
             self.bonuses[ship_id] = items
 
 
@@ -105,14 +108,16 @@ def _build_text(ctx: _Ctx, type_id, t, category, group_name, attrs) -> str:
     if desc:
         lines.append(desc)
 
-    tree = _skill_tree(ctx, type_id)
-    if tree:
-        lines.append("Requisiti skill (albero completo, prerequisiti ricorsivi):\n" + tree)
+    skills = _skill_block(ctx, type_id)
+    if skills:
+        lines.append(skills)
 
     if category in ("Ship", "Structure"):
-        bonuses = _ship_bonuses(ctx, type_id)
-        if bonuses:
-            lines.append(f"Bonus: {bonuses}")
+        lines.extend(_ship_bonus_lines(ctx, type_id))
+
+    derived = derived_line(ctx, type_id, t, category, attrs)
+    if derived:
+        lines.append(derived)
 
     if category == "Skill":
         lines.extend(_skill_lines(ctx, attrs))
@@ -129,6 +134,8 @@ def _g(v) -> str:
         v = round(v, 3)
         if v.is_integer():
             v = int(v)
+        elif abs(v) >= 1e6:
+            return f"{v:.0f}"  # never scientific notation in the text
     return f"{v:g}" if isinstance(v, float) else str(v)
 
 
@@ -193,32 +200,66 @@ def _direct_reqs(ctx: _Ctx, type_id: int) -> list[tuple[int, float | None]]:
     return out
 
 
-def _skill_tree(ctx: _Ctx, type_id: int, cap: int = 40) -> str:
-    """Recursive tree of skill prerequisites (indented). Empty if there are none."""
-    out: list[str] = []
-
-    def walk(tid: int, level, depth: int, seen: frozenset) -> None:
-        if len(out) >= cap:
-            return
-        lvl = fmt_num(level) if level is not None else "?"
-        out.append("  " * depth + f"- {ctx.names.type(tid)} livello {lvl}")
-        if tid in seen or depth >= 7:
-            return
-        for sid, lv in _direct_reqs(ctx, tid):
-            walk(sid, lv, depth + 1, seen | {tid})
-
-    for sid, lv in _direct_reqs(ctx, type_id):
-        walk(sid, lv, 0, frozenset())
-    return "\n".join(out)
+def _all_reqs(ctx: _Ctx, type_id: int, cap: int = 60) -> list[tuple[int, float | None]]:
+    """Every skill needed (prerequisites included), breadth-first, deduplicated,
+    each with the HIGHEST level required anywhere in the tree."""
+    best: dict[int, float | None] = {}
+    queue = list(_direct_reqs(ctx, type_id))
+    seen_expand: set[int] = set()
+    while queue and len(best) < cap:
+        sid, lv = queue.pop(0)
+        prev = best.get(sid)
+        if sid not in best or (lv or 0) > (prev or 0):
+            best[sid] = lv
+        if sid not in seen_expand:
+            seen_expand.add(sid)
+            queue.extend(_direct_reqs(ctx, sid))
+    return list(best.items())
 
 
-def _ship_bonuses(ctx: _Ctx, type_id: int) -> str:
-    parts = []
-    for bonus, text, skill_id in ctx.bonuses.get(type_id, []):
-        if not text:
+def _lvl_list(ctx: _Ctx, reqs) -> str:
+    return ", ".join(f"{ctx.names.type(sid)} livello {fmt_num(lv) if lv is not None else '?'}"
+                     for sid, lv in reqs)
+
+
+def _skill_block(ctx: _Ctx, type_id: int) -> str:
+    """Contiguous block that STARTS with the line "Requisiti skill" (the desktop
+    engine drops it from the context when the question is not about skills) and ends
+    before Bonus/Attributi. Empty if the type needs no skill."""
+    direct = _direct_reqs(ctx, type_id)
+    if not direct:
+        return ""
+    return ("Requisiti skill:\n"
+            f"Skill richieste direttamente: {_lvl_list(ctx, direct)}\n"
+            "Tutte le skill necessarie (prerequisiti inclusi, livello massimo richiesto): "
+            f"{_lvl_list(ctx, _all_reqs(ctx, type_id))}")
+
+
+_BONUS_UNIT = {105: ("", "%"), 104: ("", "x"), 1: ("", " m")}
+
+
+def _bonus_text(bonus, text: str, unit) -> str:
+    b = fmt_num(bonus)
+    if not text:
+        return ""
+    if not b or b == "0":
+        return text
+    return f"{b}{_BONUS_UNIT.get(unit, ('', ''))[1]} {text}".strip()
+
+
+def _ship_bonus_lines(ctx: _Ctx, type_id: int) -> list[str]:
+    """Fixed role bonuses and per-skill-level bonuses on SEPARATE labelled lines:
+    mixing them made the model read a role bonus as a per-level one."""
+    role: list[str] = []
+    per_skill: dict[int, list[str]] = {}
+    for bonus, text, skill_id, unit in ctx.bonuses.get(type_id, []):
+        t = _bonus_text(bonus, text, unit)
+        if not t:
             continue
-        b = fmt_num(bonus)
-        prefix = f"{b}% " if b and b != "0" else ""
-        suffix = f" (per livello di {ctx.names.type(skill_id)})" if skill_id else ""
-        parts.append(f"{prefix}{text}{suffix}".strip())
-    return "; ".join(parts[:12])
+        (per_skill.setdefault(skill_id, []) if skill_id else role).append(t)
+    out = []
+    if role:
+        out.append("Bonus di ruolo (fissi): " + "; ".join(role))
+    for skill_id, items in per_skill.items():
+        out.append(f"Bonus per livello di {ctx.names.type(skill_id)}: " + "; ".join(items))
+    return out

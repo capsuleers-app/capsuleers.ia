@@ -61,9 +61,9 @@ const MAX_DF_RATIO = 0.01;
 // and as the English mining word it matches thousands of SDE ore records, so the df
 // ceiling would drop it anyway — the dense side still understands it.
 const STOP = new Set(`
-a ad al alla alle allo ai agli anche c che chi ci come con cosa cos da dal dalla dalle dai degli dei del della delle dello di do dove dovrei e ed è gli ha hai ho i il in io la le lo ma mi ne nel nella nelle nei negli non o per perché perche più piu può puo qual quale quali qualcuno quando quanto quanti quante quanta questo questa questi queste quello quella quelli quelle se si sia sono su sul sulla sulle sui ti tra fra tu un una uno vorrei voglio dammi dimmi parlami spiegami posso puoi devo serve servono ore
+a ad al alla alle allo ai agli anche c che chi ci come con cosa cos da dal dalla dalle dai degli dei del della delle dello di do dove dovrei e ed è gli ha hai ho i il in io la le lo ma mi ne nel nella nelle nei negli non o per perché perche più piu può puo qual quale quali qualcuno quando quanto quanti quante quanta questo questa questi queste quello quella quelli quelle se si sia sono su sul sulla sulle sui ti tra fra tu un una uno vorrei voglio dammi dimmi parlami spiegami posso puoi devo serve servono ore conviene meglio migliore migliori ha hanno fa fanno
 an and are as at be by can could do does did for from has have how i if in is it its me my of on or should tell the their there these they this those to was were what when where which who why will with would you your about please give show get
-eve online
+better best good eve online
 `.split(/\s+/).filter(Boolean));
 
 const TOKEN = /[\p{L}\p{N}]+/gu;
@@ -175,20 +175,20 @@ export function denseSearch(index, qvec, n = DENSE_POOL) {
 /** Score fusion over the union of the pools: dense score (cosine + tier nudge) plus
  *  alpha × (BM25 normalised to the best lexical hit + 1 for a title match)
  *  → docIndex[], best first. */
-export function fuseScores(index, qvec, dense, lexical, alpha, titles = new Set()) {
+export function fuseScores(index, qvec, dense, lexical, alpha, titles = new Set(), boost = null) {
   const q = normalize(qvec);
   const top = lexical[0]?.[0] || 1;
   const lexOf = new Map(lexical.map(([s, d]) => [d, s / top]));
   for (const d of titles) lexOf.set(d, (lexOf.get(d) || 0) + 1);
   const denseOf = new Map(dense.map(([s, d]) => [d, s]));
   const out = [];
-  for (const d of new Set([...denseOf.keys(), ...lexOf.keys()])) {
+  for (const d of new Set([...denseOf.keys(), ...lexOf.keys(), ...(boost ? boost.keys() : [])])) {
     let ds = denseOf.get(d);
     if (ds === undefined) {
       ds = index.bonus ? index.bonus[d] : 0; const off = d * DIM;
       for (let j = 0; j < DIM; j++) ds += index.vectors[off + j] * q[j];
     }
-    out.push([ds + alpha * (lexOf.get(d) || 0), d]);
+    out.push([ds + alpha * (lexOf.get(d) || 0) + (boost?.get(d) || 0), d]);
   }
   return out.sort((a, b) => b[0] - a[0]).map(([, d]) => d);
 }
@@ -223,17 +223,155 @@ export function diversify(index, ranked, k, { dupSim = DUP_SIM, maxDup = MAX_DUP
   return kept;
 }
 
+// ── Cosmetic noise ──────────────────────────────────────────────────────────
+// SDE records of SKINs ("Rokh Wiyrkomi SKIN (7 Days)") and "… Edition Blueprint" are short,
+// carry the ship's name and so match every question about that hull: on "quanti CPU e
+// powergrid ha la Rokh?" three of seven context blocks were SKINs. They wait behind every
+// other candidate (like near-duplicates) unless the question is about skins/editions.
+const COSMETIC_Q = /\b(?:skins?|editions?|cosmetic\w*|cosmetici|livree|livery|liveries|apparenza)\b/i;
+export const isCosmetic = (m) => /\bSKIN\b/.test(m.title) || /\bEdition Blueprint$/i.test(m.title);
+function deferCosmetic(index, ranked, query) {
+  if (COSMETIC_Q.test(query)) return ranked;
+  const a = [], b = [];
+  for (const d of ranked) (isCosmetic(index.meta[d]) ? b : a).push(d);
+  return b.length ? a.concat(b) : ranked;
+}
+
+// ── Recency ─────────────────────────────────────────────────────────────────
+// "l'ultima espansione", "latest patch": the newest DATED source (patch notes, dev blogs,
+// site articles carry "(YYYY-MM-DD)" in the title) must win, but a topic embedding cannot
+// tell 2026-11 from 2024-06 (the answer named the June 2026 expansion with a 2024 patch
+// note as source). Dated chunks get a bonus that decays with their age relative to the
+// NEWEST date in the index (not the clock: an old index must still answer with its latest).
+const RECENT_Q = /\b(?:ultim[oaie]|recent[ei]|attual[ei]|latest|current(?:ly)?|newest|most\s+recent|just\s+released)\b/i;
+const RECENCY_W = 0.12, RECENCY_SPAN = 400;
+const DATED = /\((\d{4})-(\d{2})-(\d{2})\)/;
+function datesOf(index) {
+  if (index._days) return index._days;
+  const days = new Int32Array(index.count); let newest = 0;
+  for (let i = 0; i < index.count; i++) {
+    const m = DATED.exec(index.meta[i].title);
+    if (m) { days[i] = Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5); if (days[i] > newest) newest = days[i]; }
+  }
+  return (index._days = Object.assign(days, { newest }));
+}
+function recencyBoost(index) {
+  const days = datesOf(index), boost = new Map();
+  for (let i = 0; i < index.count; i++) {
+    if (!days[i]) continue;
+    const age = days.newest - days[i];
+    // Every dated chunk inside the span is also a candidate (fuseScores scores the union).
+    if (age < RECENCY_SPAN) boost.set(i, RECENCY_W * (1 - age / RECENCY_SPAN));
+  }
+  return boost;
+}
+
+// ── Several entities + a theme ──────────────────────────────────────────────
+// "Gila o Ishtar per gli abyssal T4?": the embedding of the whole sentence sits near one
+// of the hulls and the theme (abyssal) never reaches the context. When the query names ≥2
+// entities (distinct whole-title matches), or one entity plus a substantial residual
+// topic, each entity gets a guaranteed slot (its best-ranked record) and the residual
+// (query minus entity names and function words) is searched on its own and interleaved.
+const MAX_ENTITIES = 3;
+// Ranks of the plain ranking kept ahead of any interleaving with the residual list (with a
+// rewrite only the first one: 0, 1 and 2 all measured 30/30 and 22/22 on the golden sets).
+const HEAD = 4;
+export function planQuery(lex, meta, query, titles) {
+  if (!lex || !titles.size) return null;
+  const groups = new Map();   // lower-cased title → docs
+  for (const d of titles) {
+    const key = meta[d].title.toLowerCase();
+    (groups.get(key) || groups.set(key, []).get(key)).push(d);
+  }
+  // A title whose tokens are all part of a longer matched title is the same entity.
+  const toks = [...groups.keys()].map((k) => [k, new Set(tokenize(k))]);
+  const keys = toks.filter(([k, t]) => !toks.some(([k2, t2]) => k2 !== k && t2.size > t.size && [...t].every((x) => t2.has(x)))).map(([k]) => k);
+  if (!keys.length) return null;
+  const named = new Set(keys.flatMap((k) => tokenize(k)));
+  const residual = tokenize(query).filter((t) => !STOP.has(t) && !named.has(t) && !/^t[1-5]$/.test(t));   // "t4" only matches SDE junk (T-4ACL…)
+  if (keys.length < 2 && residual.length < 2) return null;
+  // `residual` (keywords) feeds the lexical side; `residualText` (the sentence minus the entity
+  // names) is what gets embedded — "abyssal" alone lands on SDE junk, the sentence does not.
+  const residualText = query.replace(TOKEN, (w) => (named.has(w.toLowerCase()) ? " " : w))
+    .replace(/\s+/g, " ").replace(/^(?:\s|[,;:]|\b(?:o|e|ed|or|and|vs\.?|versus)\b)+/i, "").trim();
+  return { groups: keys.map((k) => groups.get(k)), residual: residual.length ? [...new Set(residual)].join(" ") : null, residualText };
+}
+
+// One ranked list (best first) for a query vector: dense + lexical + title matches, cosmetic deferred.
+function rank(index, lex, qvec, query, o, titles, boost) {
+  const dense = denseSearch(index, qvec, DENSE_POOL);
+  const lexical = lex ? lexicalSearch(lex, query, LEXICAL_POOL, o.maxDfRatio) : [];
+  const ranked = lexical.length || titles.size || boost
+    ? fuseScores(index, qvec, dense, lexical, o.alpha ?? LEX_ALPHA, titles, boost)
+    : dense.map(([, d]) => d);
+  return deferCosmetic(index, ranked, query);
+}
+
 /**
  * The retrieval the app runs: dense + lexical pools + title matches → score fusion →
  * diversity caps → top-k. Without a lexical index it degrades to dense + the cap.
+ * Optional extras (o.plan/o.residual from retrieveAsync, o.rewrites = other phrasings of
+ * the query, already embedded): see the sections above.
  * @returns {number[]} doc indices into index.meta, best first
  */
 export function retrieve(index, lex, qvec, query, k = 12, o = {}) {
-  const dense = denseSearch(index, qvec, DENSE_POOL);
-  const lexical = lex ? lexicalSearch(lex, query, LEXICAL_POOL, o.maxDfRatio) : [];
   const titles = lex && !o.noTitle ? titleMatches(lex, index.meta, query, o.maxDfRatio) : new Set();
-  const ranked = lexical.length || titles.size
-    ? fuseScores(index, qvec, dense, lexical, o.alpha ?? LEX_ALPHA, titles)
-    : dense.map(([, d]) => d);
-  return diversify(index, ranked, k, o);
+  let boost = null;
+  if (o.recency ?? RECENT_Q.test(query)) {
+    boost = recencyBoost(index);
+  }
+  const main = rank(index, lex, qvec, query, o, titles, boost);
+  const plan = o.plan === undefined ? planQuery(lex, index.meta, query, titles) : o.plan;
+  const rankX = (x) => rank(index, lex, x.vec, x.query, o, new Set(), boost);
+  const resList = o.residual?.vec ? rankX(o.residual) : null;           // the theme without the entity names
+  const rwLists = (o.rewrites || []).filter((x) => x?.vec).map(rankX);   // other phrasings of the whole query
+  const merged = [], seen = new Set();
+  const push = (d) => { if (!seen.has(d)) { seen.add(d); merged.push(d); } };
+  const multi = plan && plan.groups.length >= 2;
+  if (plan) {
+    // One guaranteed slot per entity: its best-ranked non-cosmetic record — except when exactly
+    // one named entity is a hull: then the SDE ship record (slots, bonuses, attributes, skills:
+    // the L1 truth) is its slot. With two hulls (Gila vs Ishtar) the 2 × 2.5 KB SDE records
+    // would eat the budget the theme needs, so the smaller wiki pages stand in.
+    const pos = new Map(main.map((d, i) => [d, i]));
+    const at = (d) => pos.get(d) ?? 1e9;
+    const hull = (g) => g.find((d) => index.meta[d].source === "ccp_sde" && index.meta[d].type === "ship");
+    const oneHull = plan.groups.filter(hull).length === 1;
+    plan.groups
+      .map((g) => (oneHull && hull(g)) || g.filter((d) => !isCosmetic(index.meta[d])).sort((a, b) => at(a) - at(b))[0])
+      .filter((d) => d !== undefined)
+      .sort((a, b) => at(a) - at(b))
+      .slice(0, MAX_ENTITIES)
+      .filter((d) => multi || index.meta[d].type === "ship").forEach(push);
+  }
+  // With several entities the theme (residual list) comes right after them. With one entity
+  // the plain ranking keeps its head (it already carries the title bonus) and there is no
+  // residual search: it added "Brynn's Modified Co-Processor" to "CPU e powergrid della Rokh"
+  // and the answer stopped listing the hull's bonuses.
+  if (multi && resList) resList.slice(0, 2).forEach(push);
+  if (!multi) {
+    main.slice(0, o.head ?? (rwLists.length && !plan ? 1 : HEAD)).forEach(push);
+  }
+  // The rewrites (e.g. English) interleave with the main ranking after its head.
+  const rest = [main, ...rwLists, ...(resList && multi ? [resList] : [])];
+  for (let r = 0; merged.length < Math.max(300, k * 4) && rest.some((l) => r < l.length); r++) for (const l of rest) if (r < l.length) push(l[r]);
+  return diversify(index, merged, k, o);
+}
+
+/**
+ * retrieve() plus the second embedding some queries deserve: when planQuery finds
+ * several entities, the residual topic is embedded (one more
+ * ~200 ms embedding) and searched on its own. `embed(text)` → vector; `o.rewrites` are
+ * extra search queries (e.g. an English rewrite of an Italian question) fused in too.
+ */
+export async function retrieveAsync(index, lex, qvec, query, k, o = {}) {
+  const titles = lex && !o.noTitle ? titleMatches(lex, index.meta, query, o.maxDfRatio) : new Set();
+  const plan = o.noPlan ? null : planQuery(lex, index.meta, query, titles);
+  const extra = {};
+  if (plan?.residual && plan.groups.length >= 2 && o.embed) extra.residual = { vec: await o.embed(plan.residualText || plan.residual), query: plan.residual };
+  if (o.rewrites?.length && o.embed) {
+    extra.rewrites = [];
+    for (const q of o.rewrites) extra.rewrites.push({ vec: await o.embed(q), query: q });   // no title bonus: the original query already has it
+  }
+  return retrieve(index, lex, qvec, query, k, { ...o, plan, ...extra });
 }

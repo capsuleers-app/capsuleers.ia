@@ -58,6 +58,7 @@ with attribution, under share-alike terms.**
 | CCP Support (`support.eveonline.com`, Zendesk Help Center API) | Official rules and policies, client and account help | © CCP / Fenris Creations; each chunk links back to the article |
 | EVE Academy (`eveonline.com/eve-academy`, Contentful) | CCP's player guides | © CCP / Fenris Creations; linked back where the page has its own URL, else to the Academy home |
 | CCP developer documentation — guides (`github.com/esi/esi-docs`, `docs/guides`) | Game formulae and rules as documented by CCP | **MIT** (repository licence); linked back to developers.eveonline.com |
+| Capsuleers slang glossary (`ingestion/capsuleers_ingestion/glossary/terms.json`) | Definitions of EVE player jargon, EN + IT | Original content of this project (same MIT licence as the code); no third-party text |
 | eve-survival.org | PVE mission guides | Terms not explicit — used as fan reference; see ingestion note |
 | Riley Entertainment (`riley-entertainment.com`) | Combat-site ship fits, COSMOS guides, hacking/relic/data loot stats | **No explicit licence (commercial)** — opt-in `--riley`, NOT in `--all`; see ingestion note |
 | Anoikis (`anoikis.info`) | Wormhole effects / statics | Fan community data |

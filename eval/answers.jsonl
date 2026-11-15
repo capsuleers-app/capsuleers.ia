@@ -1,25 +1,139 @@
-{"id": "amulet-it", "q": "dove si droppano gli impianti High-grade amulet in eve online?", "lang": "it", "must": [["Blood Raider"]]}
-{"id": "amulet-en", "q": "where do High-grade Amulet implants drop?", "lang": "en", "must": [["Blood Raider"]]}
-{"id": "ore-doubled", "q": "quando sono state raddoppiate le quantità di ore nelle asteroid belt?", "lang": "it", "must": [["19.11", "2021-12-08", "dicembre 2021", "8 dicembre 2021"]]}
-{"id": "secstatus", "q": "come si alza il security status?", "lang": "it", "must": [["rat", "pirat", "NPC", "clone soldier", "tag"]]}
-{"id": "pochven", "q": "come si entra in Pochven?", "lang": "it", "must": [["filament"], ["wormhole"]]}
-{"id": "caracal", "q": "quali skill servono per pilotare una Caracal?", "lang": "it", "must": [["Caldari Cruiser"], ["Caldari Destroyer"]]}
-{"id": "dc2", "q": "requisiti skill del Damage Control II", "lang": "it", "must": [["Hull Upgrades"], ["4", "IV"]]}
-{"id": "jumpclone", "q": "quale skill aumenta il numero di jump clone?", "lang": "it", "must": [["Infomorph Psychology"]]}
-{"id": "thera-en", "q": "what is Thera?", "lang": "en", "must": [["wormhole"]]}
-{"id": "hacking", "q": "che moduli servono per fare data site e relic site?", "lang": "it", "must": [["Data Analyzer"], ["Relic Analyzer"]]}
-{"id": "abyssal-en", "q": "how long do I have to complete an abyssal deadspace site?", "lang": "en", "must": [["20 minute", "20-minute", "20 min"]]}
-{"id": "lp-en", "q": "how do I earn loyalty points?", "lang": "en", "must": [["mission"]]}
-{"id": "skyhook", "q": "cos'è un Orbital Skyhook?", "lang": "it", "must": [["pianet", "planet"]]}
-{"id": "injector", "q": "quanti skill point dà un Large Skill Injector?", "lang": "it", "must": [["500.000", "500,000", "500 000", "500000", "500k"]]}
-{"id": "worlds-collide", "q": "Worlds Collide level 4: contro quali fazioni si combatte?", "lang": "it", "must": [["Sansha", "Gallente"]]}
-{"id": "unanswerable", "q": "qual è il colore preferito del CEO di Fenris Creations?", "lang": "it", "refuse": true}
-{"id": "gila-bonus", "q": "che bonus ha la Gila?", "lang": "it", "must": [["drone"], ["500%"]]}
-{"id": "gila-skills-en", "q": "which skills do I need to fly a Gila?", "lang": "en", "must": [["Caldari Cruiser"], ["Gallente Cruiser"]]}
-{"id": "jita", "q": "in che regione si trova Jita e che security ha?", "lang": "it", "must": [["The Forge"], ["0.9"]]}
-{"id": "vexor-slots", "q": "quanti high slot, mid slot e low slot ha la Vexor?", "lang": "it", "must": [["4"], ["5"]]}
-{"id": "drake-bonus-en", "q": "what are the Drake's hull bonuses?", "lang": "en", "must": [["shield resist"], ["Heavy Missile", "missile"]]}
-{"id": "entosis", "q": "cosa non si può fare mentre un Entosis Link è attivo?", "lang": "it", "must": [["cloak", "warp", "dock"]]}
-{"id": "plex-en", "q": "where can I get PLEX?", "lang": "en", "must": [["market"]]}
-{"id": "jc-count", "q": "quanti jump clone posso avere con Infomorph Psychology al livello 5?", "lang": "it", "must": [["5", "cinque"]]}
-{"id": "unanswerable-2", "q": "in che data uscirà EVE Online 2?", "lang": "it", "refuse": true}
+{"id": "amulet-it", "cat": "lookup", "q": "dove si droppano gli impianti High-grade amulet in eve online?", "lang": "it", "must": [["Blood Raider"]]}
+{"id": "amulet-en", "cat": "lookup", "q": "where do High-grade Amulet implants drop?", "lang": "en", "must": [["Blood Raider"]]}
+{"id": "ore-doubled", "cat": "current", "q": "quando sono state raddoppiate le quantità di ore nelle asteroid belt?", "lang": "it", "must": [["19.11", "2021-12-08", "dicembre 2021", "8 dicembre 2021"]]}
+{"id": "secstatus", "cat": "mechanics", "q": "come si alza il security status?", "lang": "it", "must": [["rat", "pirat", "NPC", "clone soldier", "tag"]]}
+{"id": "pochven", "cat": "mechanics", "q": "come si entra in Pochven?", "lang": "it", "must": [["filament"], ["wormhole"]]}
+{"id": "caracal", "cat": "lookup", "q": "quali skill servono per pilotare una Caracal?", "lang": "it", "must": [["Caldari Cruiser"], ["Caldari Destroyer"]]}
+{"id": "dc2", "cat": "lookup", "q": "requisiti skill del Damage Control II", "lang": "it", "must": [["Hull Upgrades"], ["4", "IV"]]}
+{"id": "jumpclone", "cat": "lookup", "q": "quale skill aumenta il numero di jump clone?", "lang": "it", "must": [["Infomorph Psychology"]]}
+{"id": "thera-en", "cat": "newbie", "q": "what is Thera?", "lang": "en", "must": [["wormhole"]]}
+{"id": "hacking", "cat": "lookup", "q": "che moduli servono per fare data site e relic site?", "lang": "it", "must": [["Data Analyzer"], ["Relic Analyzer"]]}
+{"id": "abyssal-en", "cat": "mechanics", "q": "how long do I have to complete an abyssal deadspace site?", "lang": "en", "must": [["20 minute", "20-minute", "20 min"]]}
+{"id": "lp-en", "cat": "newbie", "q": "how do I earn loyalty points?", "lang": "en", "must": [["mission"]]}
+{"id": "skyhook", "cat": "lookup", "q": "cos'è un Orbital Skyhook?", "lang": "it", "must": [["pianet", "planet"]]}
+{"id": "injector", "cat": "lookup", "q": "quanti skill point dà un Large Skill Injector?", "lang": "it", "must": [["500.000", "500,000", "500 000", "500000", "500k"]]}
+{"id": "worlds-collide", "cat": "lookup", "q": "Worlds Collide level 4: contro quali fazioni si combatte?", "lang": "it", "must": [["Sansha", "Gallente"]]}
+{"id": "unanswerable", "cat": "refuse", "q": "qual è il colore preferito del CEO di Fenris Creations?", "lang": "it", "refuse": true}
+{"id": "gila-bonus", "cat": "lookup", "q": "che bonus ha la Gila?", "lang": "it", "must": [["drone"], ["500%"]]}
+{"id": "gila-skills-en", "cat": "lookup", "q": "which skills do I need to fly a Gila?", "lang": "en", "must": [["Caldari Cruiser"], ["Gallente Cruiser"]]}
+{"id": "jita", "cat": "lookup", "q": "in che regione si trova Jita e che security ha?", "lang": "it", "must": [["The Forge"], ["0.9"]]}
+{"id": "vexor-slots", "cat": "lookup", "q": "quanti high slot, mid slot e low slot ha la Vexor?", "lang": "it", "must": [["4"], ["5"]]}
+{"id": "drake-bonus-en", "cat": "lookup", "q": "what are the Drake's hull bonuses?", "lang": "en", "must": [["shield resist"], ["Heavy Missile", "missile"]]}
+{"id": "entosis", "cat": "mechanics", "q": "cosa non si può fare mentre un Entosis Link è attivo?", "lang": "it", "must": [["cloak", "warp", "dock"]]}
+{"id": "plex-en", "cat": "newbie", "q": "where can I get PLEX?", "lang": "en", "must": [["market"]]}
+{"id": "jc-count", "cat": "lookup", "q": "quanti jump clone posso avere con Infomorph Psychology al livello 5?", "lang": "it", "must": [["5", "cinque"]]}
+{"id": "unanswerable-2", "cat": "refuse", "q": "in che data uscirà EVE Online 2?", "lang": "it", "refuse": true}
+{"id": "rifter-bonus", "cat": "lookup", "q": "che bonus ha la Rifter?", "lang": "it", "must": [["rate of fire", "cadenza"], ["falloff"]]}
+{"id": "retriever-skills-en", "cat": "lookup", "q": "what skills do I need to fly a Retriever?", "lang": "en", "must": [["Mining Barge"], ["Astrogeology"]]}
+{"id": "tengu-skills", "cat": "lookup", "q": "quali skill servono per il Tengu?", "lang": "it", "must": [["Caldari Strategic Cruiser"], ["Core Systems"]]}
+{"id": "buzzard-bonus-en", "cat": "lookup", "q": "what does the Buzzard do better than other frigates, what are its bonuses?", "lang": "en", "must": [["Covert Ops"], ["warp"]]}
+{"id": "sabre-en", "cat": "lookup", "q": "what special thing can the Sabre fit?", "lang": "en", "must": [["Interdiction Sphere Launcher", "bubble"]]}
+{"id": "tama", "cat": "lookup", "q": "Tama: in che regione è e che security ha?", "lang": "it", "must": [["The Citadel"], ["0.3", "0,3"]]}
+{"id": "dodixie-en", "cat": "lookup", "q": "which region is Dodixie in and what is its security status?", "lang": "en", "must": [["Sinq Laison"], ["0.9"]]}
+{"id": "thera-statics", "cat": "lookup", "q": "quali sono i wormhole statici di Thera?", "lang": "it", "must": [["Q063"], ["V898"], ["E587"]]}
+{"id": "rifter-bp", "cat": "lookup", "q": "materiali per costruire una Rifter dal blueprint?", "lang": "it", "must": [["Tritanium"], ["32000", "32.000", "32,000", "32 000"]]}
+{"id": "scram2-skills-en", "cat": "lookup", "q": "what skills does a Warp Scrambler II require?", "lang": "en", "must": [["Propulsion Jamming"]]}
+{"id": "mse2", "cat": "lookup", "q": "requisiti skill e bonus del Medium Shield Extender II", "lang": "it", "must": [["Shield Upgrades"], ["1100", "1.100", "1,100"]]}
+{"id": "cyno-skill-en", "cat": "lookup", "q": "which skill do I need to fit a Cynosural Field Generator I?", "lang": "en", "must": [["Cynosural Field Theory"]]}
+{"id": "jdc-prereq", "cat": "lookup", "q": "quali sono i prerequisiti di Jump Drive Calibration?", "lang": "it", "must": [["Jump Drive Operation"], ["Science"]]}
+{"id": "ogre-skills-en", "cat": "lookup", "q": "what are the skill requirements for Ogre I drones?", "lang": "en", "must": [["Heavy Drone Operation"], ["Drones"]]}
+{"id": "alpha-omega-en", "cat": "newbie", "q": "what's the difference between Alpha and Omega in EVE Online?", "lang": "en", "must": [["Alpha"], ["Omega"], ["skill"]]}
+{"id": "free-to-play", "cat": "newbie", "q": "si può giocare a EVE Online gratis? cosa limita?", "lang": "it", "must": [["Alpha"], ["skill"]]}
+{"id": "alpha-ships", "cat": "newbie", "q": "che navi posso pilotare con un account Alpha?", "lang": "it", "must": [["frigate", "fregat"], ["battleship", "corazzat", "navi da battaglia"]]}
+{"id": "alpha-sp-en", "cat": "newbie", "q": "how many skill points can an Alpha clone train?", "lang": "en", "must": [["20M", "20 M", "20 million", "20 milioni", "20.000.000", "20,000,000"]]}
+{"id": "podded-en", "cat": "newbie", "q": "what happens when I die in EVE and get podded?", "lang": "en", "must": [["clone"], ["implant"]]}
+{"id": "where-start", "cat": "newbie", "q": "sono nuovo, da dove comincio in EVE Online?", "lang": "it", "must": [["tutorial", "Career", "Aura", "Exordium", "agent"]]}
+{"id": "start-en", "cat": "newbie", "q": "i just made a character, what should i do first?", "lang": "en", "must": [["tutorial", "Career", "Aura", "Exordium", "agent"]]}
+{"id": "isk-newbie", "cat": "newbie", "q": "come faccio ISK da nuovo giocatore?", "lang": "it", "must": [["mission", "missioni", "mining", "miner", "esplora", "explor", "career agent", "agenti career"]]}
+{"id": "exordium", "cat": "newbie", "q": "cos'è Exordium e come ci si arriva?", "lang": "it", "must": [["Yulai", "Manifest"]]}
+{"id": "empires-en", "cat": "newbie", "q": "what are the four empires of New Eden?", "lang": "en", "must": [["Amarr"], ["Caldari"], ["Gallente"], ["Minmatar"]]}
+{"id": "highsec-safe", "cat": "newbie", "q": "l'high-sec è sicuro? posso essere attaccato?", "lang": "it", "must": [["CONCORD"], ["gank", "suicid", "pirat", "non è", "non sicuro", "rischi", "not safe"]]}
+{"id": "career-agents-en", "cat": "newbie", "q": "what are career agents for?", "lang": "en", "must": [["PvE", "new player", "nuov"]]}
+{"id": "jita-market", "cat": "newbie", "q": "perché tutti parlano di Jita?", "lang": "it", "must": [["market", "mercato", "hub"]]}
+{"id": "aura-en", "cat": "newbie", "q": "who is Aura in the tutorial?", "lang": "en", "must": [["AI", "IA", "companion", "assistant", "assistente"]]}
+{"id": "slang-logi", "cat": "slang", "q": "what does logi mean in a fleet?", "lang": "en", "must": [["repair", "ripar", "logistic", "riparatori"]]}
+{"id": "slang-cyno", "cat": "slang", "q": "cos'è un cyno?", "lang": "it", "must": [["cynosural", "cinosural"], ["jump", "salt"]]}
+{"id": "slang-blops-en", "cat": "slang", "q": "what is a blops?", "lang": "en", "must": [["Black Ops", "BLOPS"], ["bridge", "covert", "cloak", "jump"]]}
+{"id": "slang-bubble", "cat": "slang", "q": "che cos'è la bubble nei gate?", "lang": "it", "must": [["warp disrupt", "interdiction", "interdizion", "disruption", "scramble"]]}
+{"id": "slang-gatecamp-en", "cat": "slang", "q": "what is a gate camp?", "lang": "en", "must": [["stargate", "gate", "porta"], ["shoot", "attack", "kill", "ambush", "wait", "imbosc", "attacc", "uccid", "spar", "intercett"]]}
+{"id": "slang-nbsi", "cat": "slang", "q": "cosa significa NBSI?", "lang": "it", "must": [["not blue", "non blu", "non è blu", "not-blue"]]}
+{"id": "slang-tackle-en", "cat": "slang", "q": "what does tackle mean in eve?", "lang": "en", "must": [["scrambl", "disrupt", "web", "stasis"]]}
+{"id": "slang-fc", "cat": "slang", "q": "cos'è un FC?", "lang": "it", "must": [["fleet commander", "comandante della flotta", "comandante di flotta", "comandante flotta"]]}
+{"id": "slang-carebear-en", "cat": "slang", "q": "what is a carebear?", "lang": "en", "must": [["non-combat", "non combat", "PvE", "not engage", "non-PvP", "non PvP", "pacific"]]}
+{"id": "slang-jjj", "cat": "slang", "q": "cosa significa JJJ nel comms della fleet?", "lang": "it", "must": [["jump"], ["gate", "stargate"]]}
+{"id": "slang-insta-en", "cat": "slang", "q": "what is an insta bookmark?", "lang": "en", "must": [["bookmark", "segnalibro"], ["15 km", "15km", "15 kilomet"]]}
+{"id": "slang-gank-en", "cat": "slang", "q": "what's suicide ganking in highsec?", "lang": "en", "must": [["CONCORD"], ["suicid"]]}
+{"id": "slang-ratting", "cat": "slang", "q": "che vuol dire fare ratting?", "lang": "it", "must": [["NPC", "pirat", "bounty", "taglia", "taglie"]]}
+{"id": "slang-bounce", "cat": "slang", "q": "'bounce' in fleet, cosa devo fare?", "lang": "it", "must": [["safe spot", "safe", "sicur", "planet", "pianet", "sun", "sole"]]}
+{"id": "stacking-second", "cat": "mechanics", "q": "quanto è efficace il secondo modulo con stacking penalty?", "lang": "it", "must": [["86.9", "86,9", "87%", "87 %"]]}
+{"id": "stacking-skills-en", "cat": "mechanics", "q": "are skills and implants subject to stacking penalties?", "lang": "en", "must": [["not", "no", "aren't", "non"], ["skill"], ["implant"]]}
+{"id": "fatigue-max-en", "cat": "mechanics", "q": "what's the maximum jump fatigue you can accumulate?", "lang": "en", "must": [["5 hour", "5 hours", "5 ore", "five hour", "300 min"]]}
+{"id": "tracking-50", "cat": "mechanics", "q": "se la velocità angolare del bersaglio è uguale al tracking della mia torretta, che chance ho di colpire?", "lang": "it", "must": [["50%", "50 %", "metà", "half", "50 per"]]}
+{"id": "falloff-60-en", "cat": "mechanics", "q": "how much average damage do turrets lose at optimal plus falloff range?", "lang": "en", "must": [["60%", "60 %"]]}
+{"id": "sovhub-en", "cat": "mechanics", "q": "what replaced the TCU and the Infrastructure Hub in Equinox?", "lang": "en", "must": [["Sovereignty Hub", "Sov Hub"]]}
+{"id": "skyhook-customs", "cat": "mechanics", "q": "gli Orbital Skyhook cosa sostituiscono?", "lang": "it", "must": [["Customs Office", "customs"]]}
+{"id": "insurance", "cat": "mechanics", "q": "quanto dura un'assicurazione nave e cosa copre?", "lang": "it", "must": [["12 settiman", "12 week", "12 weeks", "tre mesi"], ["scafo", "hull"]]}
+{"id": "b274-en", "cat": "mechanics", "q": "what are the mass limits of a B274 wormhole?", "lang": "en", "must": [["2,000,000,000", "2.000.000.000", "2 billion", "2 miliardi", "2000000000"], ["375,000,000", "375.000.000", "375 million", "375 milioni", "375000000"]]}
+{"id": "scan-100", "cat": "mechanics", "q": "a che percentuale di scan strength posso warpare su una signature?", "lang": "it", "must": [["100%", "100 %", "100 per"]]}
+{"id": "invention-runs-en", "cat": "mechanics", "q": "how many runs does a T2 ship blueprint copy from invention have?", "lang": "en", "must": [["1 run", "one run", "single run", "1 single", "a single", "una run", "un solo"]]}
+{"id": "reprocess-eff", "cat": "mechanics", "q": "che efficienza ha il reprocessing nelle stazioni NPC?", "lang": "it", "must": [["30%", "30 %"], ["50%", "50 %"]]}
+{"id": "suspect-timer", "cat": "mechanics", "q": "quanto dura il suspect timer?", "lang": "it", "must": [["15 minut", "15 min"]]}
+{"id": "limited-eng-en", "cat": "mechanics", "q": "how long does a limited engagement last?", "lang": "en", "must": [["5 minut", "5 min", "five minut"]]}
+{"id": "criminal-timer", "cat": "mechanics", "q": "cosa succede se prendo un criminal timer in high-sec?", "lang": "it", "must": [["CONCORD"], ["warp", "gate", "stargate", "salt"]]}
+{"id": "killright-en", "cat": "mechanics", "q": "where are kill rights not generated?", "lang": "en", "must": [["null"], ["limited engagement", "duel"]]}
+{"id": "clone-wh-en", "cat": "mechanics", "q": "can I jump to a jump clone that sits in a wormhole system?", "lang": "en", "must": [["Thera"]]}
+{"id": "calc-sin-jdc", "cat": "computed", "q": "Con Jump Drive Calibration V, qual è il jump range massimo di una Sin?", "lang": "it", "must": [["8 ly", "8ly", "8 light", "8 anni luce", "8.0 ", "8,0 "]]}
+{"id": "calc-anshar-jdc-en", "cat": "computed", "q": "what is the max jump range of an Anshar with Jump Drive Calibration V?", "lang": "en", "must": [["10 ly", "10ly", "10 light", "10 anni luce", "10.0 ", "10,0 "]]}
+{"id": "calc-chimera-jdc-en", "cat": "computed", "q": "with Jump Drive Calibration at level 5, how many light years can a Chimera jump?", "lang": "en", "must": [["7 ly", "7ly", "7 light", "7 anni luce", "7.0 ", "7,0 "]]}
+{"id": "calc-hobgoblin", "cat": "computed", "q": "quanto danno fa un Hobgoblin I per colpo e di che tipo?", "lang": "it", "must": [["32"], ["thermal", "termic"]]}
+{"id": "calc-warrior-en", "cat": "computed", "q": "how much damage per shot does a Warrior I drone do, and what damage type?", "lang": "en", "must": [["26"], ["explosive", "esplosiv"]]}
+{"id": "calc-ogre", "cat": "computed", "q": "danno per colpo di un Ogre I e tipo di danno?", "lang": "it", "must": [["102.4", "102,4", "102"], ["thermal", "termic"]]}
+{"id": "calc-hammerhead-dps-en", "cat": "computed", "q": "what's the base DPS of a Hammerhead I drone?", "lang": "en", "must": [["12.8", "12,8"]]}
+{"id": "calc-blaster-dps", "cat": "computed", "q": "DPS di una Light Neutron Blaster I con munizioni Antimatter Charge S, senza bonus?", "lang": "it", "must": [["12.6", "12,6"]]}
+{"id": "calc-caracal-hp-en", "cat": "computed", "q": "what is the total raw HP of a Caracal (shield plus armor plus structure)?", "lang": "en", "must": [["4300", "4,300", "4.300", "4 300"]]}
+{"id": "calc-fatigue-en", "cat": "computed", "q": "if I have zero jump fatigue and jump 5 ly, what is the minimum jump fatigue I get?", "lang": "en", "must": [["60 min", "60 minut", "1 hour", "1 hr", "1h", "an hour", "one hour"]]}
+{"id": "calc-cooldown", "cat": "computed", "q": "salto di 5 anni luce senza fatigue: qual è il cooldown minimo di attivazione del jump drive?", "lang": "it", "must": [["6 min", "6 minut"]]}
+{"id": "calc-hel-jdc-en", "cat": "computed", "q": "how far can a Hel jump with Jump Drive Calibration V?", "lang": "en", "must": [["6 ly", "6ly", "6 light", "6 anni luce", "6.0 ", "6,0 "]]}
+{"id": "adv-l4-it", "cat": "advice", "q": "che nave mi consigli per fare missioni di livello 4?", "lang": "it", "must": [["Marauder", "Golem", "Paladin", "Kronos", "Vargur", "Raven", "Dominix", "Typhoon", "Praxis", "Gila", "Rattlesnake", "Machariel", "Barghest"]]}
+{"id": "adv-l4-lowskill-en", "cat": "advice", "q": "best ship to run level 4 missions with low skills?", "lang": "en", "must": [["Gila", "Praxis"]]}
+{"id": "adv-gila-ishtar-en", "cat": "advice", "q": "Gila vs Ishtar for abyssals, which one?", "lang": "en", "must": [["Gila"], ["Ishtar"], ["drone"]]}
+{"id": "adv-shield-armor", "cat": "advice", "q": "meglio shield tank o armor tank?", "lang": "it", "must": [["shield", "scudo", "scudi"], ["armor", "armour", "armatura", "corazza"], ["slow", "lent", "velocit", "speed", "mid slot", "slot medi", "capacitor", "capacitatore"]]}
+{"id": "adv-mining-en", "cat": "advice", "q": "what's a good ship for mining as a new player?", "lang": "en", "must": [["Venture", "Retriever", "Procurer", "Covetor", "Mackinaw", "Hulk", "Skiff", "barge"]]}
+{"id": "adv-explore", "cat": "advice", "q": "che nave uso per l'esplorazione, hacking di data e relic site?", "lang": "it", "must": [["Heron", "Magnate", "Imicus", "Probe", "Buzzard", "Helios", "Anathema", "Cheetah"]]}
+{"id": "adv-l3-en", "cat": "advice", "q": "which ships are good for level 3 missions?", "lang": "en", "must": [["Gila", "Drake", "Ferox", "Caracal", "Hurricane", "Myrmidon", "Cyclone", "Brutix", "Harbinger", "Battlecruiser", "Heavy Assault"]]}
+{"id": "adv-l1", "cat": "advice", "q": "che nave va bene per le missioni di livello 1?", "lang": "it", "must": [["destroyer", "cacciatorpediniere"]]}
+{"id": "adv-tengu-en", "cat": "advice", "q": "is the Tengu a good level 4 mission ship?", "lang": "en", "must": [["battleship", "corazzat"], ["cloak", "nulli", "blitz"]]}
+{"id": "adv-cruise-en", "cat": "advice", "q": "which battleships work well with cruise missiles in L4 missions?", "lang": "en", "must": [["Raven", "Typhoon", "Praxis"]]}
+{"id": "adv-drones-bs", "cat": "advice", "q": "battleship migliore per missioni L4 con i droni?", "lang": "it", "must": [["Rattlesnake", "Dominix"]]}
+{"id": "adv-l5-en", "cat": "advice", "q": "what do people use for level 5 missions?", "lang": "en", "must": [["carrier", "Marauder"]]}
+{"id": "cur-latest-exp", "cat": "current", "q": "qual è l'ultima espansione di EVE Online?", "lang": "it", "must": [["Fractured Skies"]]}
+{"id": "cur-fs-date-en", "cat": "current", "q": "when was the Fractured Skies expansion released?", "lang": "en", "must": [["2026-11-10", "10 November 2026", "November 10", "10 novembre", "November 2026", "novembre 2026"]]}
+{"id": "cur-latest-patch", "cat": "current", "q": "qual è l'ultima versione della patch?", "lang": "it", "must": [["24.02"]]}
+{"id": "cur-prev-exp-en", "cat": "current", "q": "which expansion came right before Fractured Skies?", "lang": "en", "must": [["Cradle of War"]]}
+{"id": "cur-cow-date", "cat": "current", "q": "quando è uscita l'espansione Cradle of War?", "lang": "it", "must": [["5 giugno 2026", "2026-06-05", "giugno 2026", "June 2026", "5 June 2026"]]}
+{"id": "cur-command-carriers-en", "cat": "current", "q": "which command carriers were added with Cradle of War?", "lang": "en", "must": [["Salvation"], ["Gaia"], ["Simurgh"], ["Ymir"]]}
+{"id": "cur-exordium", "cat": "current", "q": "come si accede alla regione Exordium?", "lang": "it", "must": [["Yulai"]]}
+{"id": "cur-equinox-en", "cat": "current", "q": "which expansion introduced the Sovereignty Hub, and when?", "lang": "en", "must": [["Equinox"], ["2024"]]}
+{"id": "cur-babaroga", "cat": "current", "q": "quale Marauder triglaviano ha introdotto l'espansione Legion?", "lang": "it", "must": [["Babaroga"]]}
+{"id": "cur-revenant-en", "cat": "current", "q": "which expansion added Mercenary Dens?", "lang": "en", "must": [["Revenant"]]}
+{"id": "cur-crimson", "cat": "current", "q": "cosa è cambiato ai siti Crimson Gauntlet e Tetrimon Base in Pochven con Crimson Harvest?", "lang": "it", "must": [["rift", "spacc", "faglie", "squarc", "fessur"], ["Drifter"]]}
+{"id": "cur-mwd-en", "cat": "current", "q": "what changed for Tech II microwarpdrives in the Cradle of War expansion?", "lang": "en", "must": [["activation cost", "costo di attivazione", "costi di attivazione"], ["bloom", "signature", "firma"]]}
+{"id": "cur-fw-24-02-en", "cat": "current", "q": "what did patch 24.02 change for Factional Warfare?", "lang": "en", "must": [["Supply Depot"], ["remote repair", "remote-repair", "repair", "riparar"]]}
+{"id": "fu-gila", "cat": "followup", "lang": "it", "turns": [{"q": "cos'è la Gila?", "must": [["Gila"]]}, {"q": "e che skill servono per pilotarla?", "must": [["Caldari Cruiser"], ["Gallente Cruiser"]]}, {"q": "che bonus ai droni ha?", "must": [["500%"]]}]}
+{"id": "fu-caracal-en", "cat": "followup", "lang": "en", "turns": [{"q": "tell me about the Caracal", "must": [["Caracal"]]}, {"q": "what skills does it need?", "must": [["Caldari Cruiser"]]}, {"q": "and what are its bonuses?", "must": [["Heavy Missile"], ["rate of fire", "cadenza"]]}]}
+{"id": "fu-jita", "cat": "followup", "lang": "it", "turns": [{"q": "dove si trova Jita?", "must": [["The Forge"]]}, {"q": "e che security ha?", "must": [["0.9", "0,9"]]}, {"q": "e Perimeter?", "must": [["The Forge"], ["0.9", "0,9"]]}]}
+{"id": "fu-thera-en", "cat": "followup", "lang": "en", "turns": [{"q": "what is Thera?", "must": [["wormhole"]]}, {"q": "which wormhole types are its statics?", "must": [["Q063"], ["V898"], ["E587"]]}]}
+{"id": "fu-alpha", "cat": "followup", "lang": "it", "turns": [{"q": "cos'è un clone Alpha?", "must": [["Alpha"], ["gratuit", "free", "gratis", "senza game time", "senza tempo di gioco", "senza abbonamento"]]}, {"q": "e l'Omega?", "must": [["Omega"], ["illimitat", "unlimited", "tutte le navi", "all ships", "tutte le skill"]]}, {"q": "quanti skill point posso addestrare con l'Alpha?", "must": [["20M", "20 M", "20 milioni", "20 million", "20.000.000", "20,000,000"]]}]}
+{"id": "fu-crimewatch-en", "cat": "followup", "lang": "en", "turns": [{"q": "what is a suspect timer?", "must": [["suspect"], ["attack", "attacc"]]}, {"q": "and what about a criminal timer?", "must": [["CONCORD"]]}, {"q": "how long does a limited engagement last?", "must": [["5 minut", "5 min", "five minut"]]}]}
+{"id": "fu-stacking", "cat": "followup", "lang": "it", "turns": [{"q": "cos'è lo stacking penalty?", "must": [["penal"], ["modul"]]}, {"q": "quanto vale per il secondo modulo?", "must": [["86.9", "86,9", "87%", "87 %"]]}]}
+{"id": "fu-cyno-en", "cat": "followup", "lang": "en", "turns": [{"q": "what is a cyno?", "must": [["cynosural"]]}, {"q": "which ships can fit it?", "must": [["Black Ops"], ["Force Recon"], ["Heavy Interdiction", "HIC"]]}, {"q": "what skill does it need?", "must": [["Cynosural Field Theory"]]}]}
+{"id": "fu-expansion", "cat": "followup", "lang": "it", "turns": [{"q": "qual è l'ultima espansione di EVE?", "must": [["Fractured Skies"]]}, {"q": "quando è uscita?", "must": [["2026-11-10", "10 novembre 2026", "10 November 2026", "novembre 2026", "November 2026"]]}, {"q": "e quella prima?", "must": [["Cradle of War"]]}]}
+{"id": "fu-exordium-en", "cat": "followup", "lang": "en", "turns": [{"q": "what is Exordium?", "must": [["new-player", "new player", "starter", "region"]]}, {"q": "how do I get there?", "must": [["Yulai"]]}]}
+{"id": "fu-mining", "cat": "followup", "lang": "it", "turns": [{"q": "che nave posso usare per minare da nuovo?", "must": [["Venture", "Retriever", "Procurer", "Covetor", "barge", "Hulk"]]}, {"q": "e quali skill servono per la Venture?", "must": [["Mining Frigate"]]}, {"q": "quanto yield dà ogni livello di quella skill?", "must": [["5%", "5 %"]]}]}
+{"id": "fu-b274-en", "cat": "followup", "lang": "en", "turns": [{"q": "what is a B274 wormhole?", "must": [["high"], ["wormhole"]]}, {"q": "how much total mass can it pass?", "must": [["2,000,000,000", "2.000.000.000", "2 billion", "2 miliardi", "2000000000"]]}]}
+{"id": "refuse-at2031", "cat": "refuse", "q": "chi ha vinto l'Alliance Tournament del 2031?", "lang": "it", "refuse": true}
+{"id": "refuse-steamdeck-en", "cat": "refuse", "q": "does EVE Online run natively on Steam Deck?", "lang": "en", "refuse": true}
+{"id": "refuse-2027-exp", "cat": "refuse", "q": "come si chiamerà l'espansione di giugno 2027?", "lang": "it", "refuse": true}
+{"id": "refuse-phone-en", "cat": "refuse", "q": "what is the phone number of CCP customer support?", "lang": "en", "refuse": true}
+{"id": "refuse-salary", "cat": "refuse", "q": "quanto guadagna all'anno il CEO di CCP?", "lang": "it", "refuse": true}
+{"id": "refuse-next-at-en", "cat": "refuse", "q": "which alliance will win the next Alliance Tournament?", "lang": "en", "refuse": true}

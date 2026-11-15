@@ -46,6 +46,8 @@ python -m capsuleers_ingestion.wormhole_update    # incremental wormhole update 
 - `wiki/recentchanges.py` — `changed_titles_since(source, …)` (the structured `Special:RecentChanges`).
 - `htmltext.py` — shared, stdlib-only HTML→plain-text extractor (`html_to_text`); used by the Fandom
   `action=parse` path and the static-site scrapers in `web/`.
+- `glossary/` — hand-written slang glossary (`terms.json`, one Document per term, EN + IT); a Provider in the
+  `ccp/` registry (`run --ccp --ccp-only glossary`), L3, offline.
 - `web/riley.py` — bounded BFS crawler for Riley Entertainment's static EVE guides
   (`riley-entertainment.com/gaming/eve-online`). Opt-in (`--riley`): no explicit licence, so it is
   never part of `--all`.
