@@ -26,37 +26,50 @@ const EMBED = process.env.IA_EMBED || path.join(APP, "models", "bge-m3-Q8_0.gguf
 const DATASET = path.join(HERE, "..", "..", "eval", "answers.jsonl");
 
 const argv = process.argv.slice(2);
-const file = argv.find((a) => a.endsWith(".gguf"));
+const opt = (k) => (argv.includes(k) ? argv[argv.indexOf(k) + 1] : null);
+// --out f.json saves every full answer; --rescore f.json re-scores them against the CURRENT
+// dataset without loading a model (after fixing a too-strict `must`, or to compare runs).
+const outFile = opt("--out"), rescore = opt("--rescore");
+const saved = rescore ? JSON.parse(fs.readFileSync(rescore, "utf-8")) : null;
+const file = saved ? saved.model : argv.find((a) => a.endsWith(".gguf"));
 if (!file) { console.error("uso: eval-answers.mjs <modello.gguf> [--only id,id] [--cat a,b] [--show]"); process.exit(2); }
 const only = argv.includes("--only") ? new Set(argv[argv.indexOf("--only") + 1].split(",")) : null;
 const cats = argv.includes("--cat") ? new Set(argv[argv.indexOf("--cat") + 1].split(",")) : null;
 const show = argv.includes("--show");
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "capsuleers-eval-"));
-fs.symlinkSync(EMBED, path.join(scratch, "bge-m3-Q8_0.gguf"));
-fs.symlinkSync(path.resolve(MODELS, file), path.join(scratch, file));
-fs.writeFileSync(path.join(scratch, ".selected-model"), file);
-configurePaths({ modelsDir: scratch, dataDir: DATA });
+const scratch = saved ? null : fs.mkdtempSync(path.join(os.tmpdir(), "capsuleers-eval-"));
+if (!saved) {
+  fs.symlinkSync(EMBED, path.join(scratch, "bge-m3-Q8_0.gguf"));
+  fs.symlinkSync(path.resolve(MODELS, file), path.join(scratch, file));
+  fs.writeFileSync(path.join(scratch, ".selected-model"), file);
+  configurePaths({ modelsDir: scratch, dataDir: DATA });
+}
 
 const REFUSAL = /non ho (questa|quest'|queste|l')?\s*informazion|non (è|e') (presente|indicat|specificat|riportat)|non (sono|risulta) disponibil|not (in|available in) the (provided )?(context|sources)|i don'?t have (this|that) information|does not (specify|mention|contain)/i;
 
 const cases = fs.readFileSync(DATASET, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
   .filter((c) => (!only || only.has(c.id)) && (!cats || cats.has(c.cat)));
 const t0 = Date.now();
-const info = await init(() => {});
-console.log(`${file} · GPU ${info.gpu} · layer in GPU ${info.gpuLayers}/${info.totalLayers} · caricato in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+const info = saved ? saved.info : await init(() => {});
+const savedById = saved ? new Map(saved.rows.map((r) => [r.id, r])) : null;
+const outRows = [];
+console.log(`${file}${saved ? " (rescore)" : ""} · GPU ${info.gpu} · layer in GPU ${info.gpuLayers}/${info.totalLayers} · caricato in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 
 let pass = 0, ms = 0, chars = 0, nAsk = 0;
 const byCat = {};
 for (const c of cases) {
-  resetConversation();   // once per row: `turns` share one conversation
+  if (saved && !savedById.has(c.id)) continue;
+  if (!saved) resetConversation();   // once per row: `turns` share one conversation
   const turns = c.turns || [c];
   let ok = true, dtRow = 0, note = "";
   const shown = [];
   for (const [i, turn] of turns.entries()) {
     const t = Date.now();
-    const { answer } = await ask(turn.q, () => {}, c.lang);
-    const dt = Date.now() - t; dtRow += dt; ms += dt; chars += answer.length; nAsk++;
+    const prev = saved ? savedById.get(c.id) : null;
+    const { answer } = prev ? { answer: prev.answers[i] ?? "" } : await ask(turn.q, () => {}, c.lang);
+    const dt = prev ? (prev.ms[i] ?? 0) : Date.now() - t;
+    (outRows[outRows.length - 1]?.id === c.id ? outRows[outRows.length - 1] : outRows[outRows.push({ id: c.id, cat: c.cat, answers: [], ms: [] }) - 1]).answers.push(answer);
+    outRows[outRows.length - 1].ms.push(dt); dtRow += dt; ms += dt; chars += answer.length; nAsk++;
     const text = answer.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");   // linkified names → plain
     const facts = turn.refuse ? REFUSAL.test(text)
       : (turn.must || []).every((group) => group.some((alt) => text.toLowerCase().includes(alt.toLowerCase())));
@@ -76,6 +89,8 @@ console.log("\nper categoria:");
 for (const [k, v] of Object.entries(byCat).sort()) console.log(`  ${k.padEnd(10)} ${v.pass}/${v.total}`);
 console.log(`\n${file}: ${pass}/${cases.length} corrette · ${(ms / n / 1000).toFixed(1)} s/riga in media`);
 console.log(JSON.stringify({ model: file, pass, total: cases.length, byCat, avgSec: +(ms / n / 1000).toFixed(2), avgChars: Math.round(chars / (nAsk || 1)), gpuLayers: `${info.gpuLayers}/${info.totalLayers}` }));
+if (outFile) fs.writeFileSync(outFile, JSON.stringify({ model: file, info, env: { ctx: process.env.IA_CHAT_CTX || null, chars: process.env.IA_CONTEXT_CHARS || null }, rows: outRows }));
+if (saved) process.exit(0);
 await shutdown();
 fs.rmSync(scratch, { recursive: true, force: true });
 process.exit(0);

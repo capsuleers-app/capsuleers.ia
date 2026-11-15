@@ -48,7 +48,10 @@ export function configurePaths({ modelsDir, dataDir } = {}) {
  *  in BOTH modes, instead of only knowing the packaged userData paths. */
 export function assetPaths() { return { modelsDir: MODELS_DIR, dataDir: DATA }; }
 
-const DIM = 1024, TOP_K = 12, MAX_CONTEXT_CHARS = 6000;
+// IA_CONTEXT_CHARS / IA_CHAT_CTX / IA_TOP_K: measurement knobs for tools/eval-answers.mjs
+// (how much a bigger context buys on a given model); the app never sets them.
+const envInt = (k, d) => { const n = parseInt(process.env[k] || "", 10); return Number.isFinite(n) && n > 0 ? n : d; };
+const DIM = 1024, TOP_K = envInt("IA_TOP_K", 12), MAX_CONTEXT_CHARS = envInt("IA_CONTEXT_CHARS", 6000);
 // Min cosine similarity (new question vs the previous one) to consider the prior
 // turn relevant and include it as context. Too much history confuses the model, so
 // we keep at most ONE turn, and only when it's actually on-topic.
@@ -85,7 +88,11 @@ export function checkIndexCompat({ vecBytes, metaCount, sidecar } = {}) {
 }
 // Reduced chat context: less KV cache → ~2-4GB models fit (almost) entirely in GPU
 // even with other apps using VRAM. createChatContext() shrinks further if needed.
-const CHAT_CTX = 4096;
+const CHAT_CTX = envInt("IA_CHAT_CTX", 4096);
+// Reasoning models (Qwen3.5, Gemma 4…) think before answering: left free they spent the whole
+// 1600-token cap on thoughts and returned an EMPTY answer after 30 s. The answer is grounded
+// in the retrieved context, so no thought budget at all.
+const NO_THINK = { thoughtTokens: 0 };
 
 const SYSTEM = `Sei un assistente esperto di EVE Online. Rispondi usando SOLO il CONTESTO fornito.
 - LINGUA: rispondi SEMPRE nella stessa lingua della DOMANDA. Se la domanda è in italiano, l'INTERA risposta è in italiano, anche se le fonti sono in inglese. Non cambiare lingua a metà.
@@ -217,7 +224,7 @@ async function condense(question) {
   });
   let out = "";
   try {
-    out = await session.prompt(`Conversazione:\n${h}\n\nUltima domanda: ${question}`, { maxTokens: 80, temperature: 0.1, signal: activeAbort.signal });
+    out = await session.prompt(`Conversazione:\n${h}\n\nUltima domanda: ${question}`, { maxTokens: 80, temperature: 0.1, budgets: NO_THINK, signal: activeAbort.signal });
   } catch (e) {
     if (!activeAbort.signal.aborted) throw e;  // expected cancellation → fall back to the original question
   } finally {
@@ -241,7 +248,7 @@ export async function searchRewrite(question) {
   });
   let out = "";
   try {
-    out = await session.prompt(question, { maxTokens: 40, temperature: 0.1, signal: activeAbort.signal });
+    out = await session.prompt(question, { maxTokens: 40, temperature: 0.1, budgets: NO_THINK, signal: activeAbort.signal });
   } catch (e) {
     if (!activeAbort.signal.aborted) throw e;
   } finally {
@@ -937,7 +944,7 @@ export async function ask(question, onToken = () => {}, uiLang = null) {
     // 4096 context leaves room for prompt + a long answer. (No real Q&A answer
     // reaches this, so it effectively means "generate until complete".)
     await session.prompt(userMsg, {
-      maxTokens: 1600, temperature: 0.2,
+      maxTokens: 1600, temperature: 0.2, budgets: NO_THINK,
       signal: activeAbort.signal,
       onTextChunk: (t) => { answer += t; onToken(t); },
     });
