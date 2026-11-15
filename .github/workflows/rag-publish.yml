@@ -247,11 +247,25 @@ jobs:
           done
           echo "changed=$([ "$UGUALI" = "1" ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
 
+      # Il token dell'App creato a inizio job dura un'ora: una ricostruzione completa ne dura
+      # di piu' (2h30 il 2026-11-15) e il push del manifest falliva con la release gia'
+      # caricata. Qui se ne crea uno nuovo, usato solo per quel push.
+      - name: Token fresco per il push del manifest
+        id: push-token
+        if: inputs.publish && steps.export.outputs.changed == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.CAPSULEERS_BOT_APP_ID }}
+          private-key: ${{ secrets.CAPSULEERS_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: capsuleers.ia
+
       - name: Pubblica la release e aggiorna il manifest
         if: inputs.publish && steps.export.outputs.changed == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PUSH_TOKEN: ${{ steps.push-token.outputs.token }}
         run: |
           set -euo pipefail
           # publish-index.sh resta l'unica verita' su COME si pubblica (export,
