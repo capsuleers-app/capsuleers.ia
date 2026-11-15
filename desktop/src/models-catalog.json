@@ -41,7 +41,7 @@
       "quant": "Q4_K_M",
       "sizeGB": 2.5,
       "default": true,
-      "recommended": "Equilibrio velocità/qualità, gira bene anche su GPU da 6-8 GB.",
+      "recommended": "Il più veloce: risposte in pochi secondi, gira bene anche su GPU da 6 GB.",
       "rank": 1,
       "minVramGB": 0
     },
@@ -63,7 +63,7 @@
       "paramsB": 7,
       "quant": "Q4_K_M",
       "sizeGB": 4.7,
-      "recommended": "Più accurato; richiede ~6-8 GB di VRAM per stare tutto in GPU."
+      "recommended": "Modello del 2024: più accurato del 3B; ~6-8 GB di VRAM per stare tutto in GPU."
     },
     {
       "id": "qwen2.5-14b",
@@ -73,7 +73,7 @@
       "paramsB": 14,
       "quant": "Q4_K_M",
       "sizeGB": 9.0,
-      "recommended": "Massima qualità per Q&A complessi; richiede GPU da 8+ GB."
+      "recommended": "Modello del 2024, grande; richiede una GPU da 8+ GB. Oggi Gemma 4 12B risponde meglio."
     },
     {
       "id": "mistral-nemo",
@@ -83,7 +83,7 @@
       "paramsB": 12,
       "quant": "Q4_K_M",
       "sizeGB": 7.5,
-      "recommended": "Il più capace; serve una GPU da 8+ GB per essere veloce."
+      "recommended": "Modello del 2024; serve una GPU da 8+ GB per essere veloce. Oggi Qwen3.5 9B risponde meglio."
     }
   ]
 }
