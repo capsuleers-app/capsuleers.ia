@@ -11,8 +11,7 @@ A step-by-step guide to get the entire stack running on your machine and try it 
 
 > Note: on this machine `docker` is actually **rootless podman**. The scripts
 > below use `podman`; with classic docker the commands are identical
-> (`docker` in place of `podman`, and for Qdrant you can use `-p 6333:6333` instead
-> of `--network host`).
+> (`docker` in place of `podman`).
 
 ---
 
@@ -29,13 +28,13 @@ chmod +x ops/start.sh
 Or manually:
 
 ```bash
-# Qdrant (vector DB) — host networking to avoid a rootless port-forward bug
-podman run -d --name capsuleers-qdrant --network host \
-  -v capsuleers_qdrant:/qdrant/storage docker.io/qdrant/qdrant:latest
+# Qdrant (vector DB) — ports published on loopback only
+podman run -d --name capsuleers-qdrant -p 127.0.0.1:6333:6333 -p 127.0.0.1:6334:6334 \
+  -v capsuleers_qdrant:/qdrant/storage docker.io/qdrant/qdrant:v1.18.2
 
 # Ollama (models)
-podman run -d --name capsuleers-ollama -p 11434:11434 \
-  -v capsuleers_ollama:/root/.ollama docker.io/ollama/ollama:latest
+podman run -d --name capsuleers-ollama -p 127.0.0.1:11434:11434 \
+  -v capsuleers_ollama:/root/.ollama docker.io/ollama/ollama:0.30.11
 
 # Models (~6 GB total, one-time)
 podman exec capsuleers-ollama ollama pull bge-m3              # embeddings
@@ -182,4 +181,4 @@ and rerun `./ops/start.sh`. Verify with `podman exec capsuleers-ollama ollama ps
 - The first generation is slow on CPU: qwen2.5:7b runs at ~7 tokens/s (tens of seconds per
   response). On GPU it drops to a few seconds.
 - If `curl` on :6333 returns an empty response with podman, make sure Qdrant was
-  started with `--network host` (see above).
+  started with `-p 127.0.0.1:6333:6333` (see above); host networking is no longer used.

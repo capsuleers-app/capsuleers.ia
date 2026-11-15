@@ -24,6 +24,27 @@ const CATALOG_URL = "https://raw.githubusercontent.com/capsuleers-app/capsuleers
 const INDEX_MANIFEST_URL = "https://raw.githubusercontent.com/capsuleers-app/capsuleers.ia/main/desktop/src/assets-manifest.json";
 const PERSISTED_INDEX_MANIFEST = "index-manifest.json";  // in dataDir
 
+// File names that come from a remote manifest/catalog are untrusted: a bare name only
+// (no separators, no "..") and the resolved path must stay inside the destination dir.
+const SAFE_NAME = /^[A-Za-z0-9._-]+$/;
+export function isSafeFileName(name) {
+  return typeof name === "string" && SAFE_NAME.test(name) && name !== "." && !name.includes("..");
+}
+/** path.join(dir, name) that throws unless `name` is a safe bare file name inside `dir`. */
+export function safeJoin(dir, name) {
+  if (!isSafeFileName(name)) throw new Error(`Unsafe file name rejected: ${JSON.stringify(String(name).slice(0, 80))}`);
+  const base = path.resolve(dir);
+  const full = path.resolve(base, name);
+  if (path.dirname(full) !== base) throw new Error(`Path escapes destination: ${JSON.stringify(name)}`);
+  return full;
+}
+const safeJoinOrNull = (dir, name) => { try { return safeJoin(dir, name); } catch { return null; } };
+const indexFilesSafe = (m) => Array.isArray(m?.index?.files) && m.index.files.every((f) => {
+  const ok = isSafeFileName(f?.name);
+  if (!ok) console.warn("[assets] index manifest rejected: unsafe file name", JSON.stringify(String(f?.name).slice(0, 80)));
+  return ok;
+});
+
 /** Load the bundled index + embedding manifest (shipped next to this module). */
 export function loadManifest() {
   return JSON.parse(fs.readFileSync(path.join(HERE, "assets-manifest.json"), "utf-8"));
@@ -38,7 +59,7 @@ export function loadEffectiveManifest(dataDir) {
   if (!dataDir) return bundled;
   try {
     const persisted = JSON.parse(fs.readFileSync(path.join(dataDir, PERSISTED_INDEX_MANIFEST), "utf-8"));
-    if (persisted?.index?.version && Array.isArray(persisted.index.files)) {
+    if (persisted?.index?.version && Array.isArray(persisted.index.files) && indexFilesSafe(persisted)) {
       return { ...bundled, index: persisted.index };
     }
   } catch { /* none yet → bundled */ }
@@ -73,7 +94,7 @@ export async function fetchRemoteManifest({ signal } = {}) {
     clearTimeout(t);
     if (!res.ok) return null;
     const m = await res.json();
-    return m?.index?.version && Array.isArray(m.index?.files) ? m : null;
+    return m?.index?.version && Array.isArray(m.index?.files) && indexFilesSafe(m) ? m : null;
   } catch { return null; }
 }
 
@@ -105,7 +126,11 @@ function loadCatalogBundled() {
 // models too heavy for typical VRAM, nor so small they hurt answer quality).
 function applyRange(catalog) {
   const min = catalog.range?.minGB ?? 0, max = catalog.range?.maxGB ?? Infinity;
-  const models = (catalog.models || []).filter((m) => m.sizeGB >= min && m.sizeGB <= max);
+  const models = (catalog.models || []).filter((m) => {
+    if (!(m.sizeGB >= min && m.sizeGB <= max)) return false;
+    if (!isSafeFileName(m.file)) { console.warn("[assets] catalog entry dropped: unsafe file name", JSON.stringify(String(m.file).slice(0, 80))); return false; }
+    return true;
+  });
   return { ...catalog, models };
 }
 
@@ -152,26 +177,26 @@ function hasChatModel(modelsDir) {
 
 /** Catalog model ids already downloaded (matched by file name). */
 export function installedCatalogIds(catalog, modelsDir) {
-  return catalog.models.filter((m) => existsByName(path.join(modelsDir, m.file))).map((m) => m.id);
+  return catalog.models.filter((m) => existsByName(safeJoinOrNull(modelsDir, m.file) || "")).map((m) => m.id);
 }
 
 /** A download task for a catalog model (resolves url/size/sha256 from HuggingFace). */
 export async function modelTask(entry, modelsDir, signal) {
   const { url, sha256, size } = await resolveHfAsset(entry.repo, entry.file, signal);
-  return { ...task(`Modello · ${entry.label}`, url, path.join(modelsDir, entry.file), size, sha256), modelId: entry.id, filename: entry.file };
+  return { ...task(`Modello · ${entry.label}`, url, safeJoin(modelsDir, entry.file), size, sha256), modelId: entry.id, filename: entry.file };
 }
 
 /** All tasks for the INDEX (vector file + metadata + lookup). */
 export function indexTasks(manifest, dataDir) {
   const baseUrl = manifest.index.baseUrl.replace(/\/$/, "");
   return manifest.index.files.map((f) =>
-    task(`Indice · ${f.name}`, `${baseUrl}/${f.name}`, path.join(dataDir, f.name), f.size, f.sha256));
+    task(`Indice · ${f.name}`, `${baseUrl}/${f.name}`, safeJoin(dataDir, f.name), f.size, f.sha256));
 }
 
 /** Task for the EMBEDDING model (bge-m3), always required. */
 export function embeddingTask(manifest, modelsDir) {
   const e = manifest.embedding;
-  return task(`Embedding · ${e.filename}`, e.url, path.join(modelsDir, e.filename), e.size, e.sha256);
+  return task(`Embedding · ${e.filename}`, e.url, safeJoin(modelsDir, e.filename), e.size, e.sha256);
 }
 
 /**
@@ -180,8 +205,8 @@ export function embeddingTask(manifest, modelsDir) {
  * is verified only at download time.
  */
 export function assetStatus({ modelsDir, dataDir, manifest = loadManifest() }) {
-  const embeddingReady = sizeMatches(path.join(modelsDir, manifest.embedding.filename), manifest.embedding.size);
-  const indexReady = manifest.index.files.every((f) => sizeMatches(path.join(dataDir, f.name), f.size));
+  const embeddingReady = sizeMatches(safeJoinOrNull(modelsDir, manifest.embedding.filename) || "", manifest.embedding.size);
+  const indexReady = manifest.index.files.every((f) => sizeMatches(safeJoinOrNull(dataDir, f.name) || "", f.size));
   const chatModelReady = hasChatModel(modelsDir);
   return { embeddingReady, indexReady, chatModelReady, firstRunReady: embeddingReady && indexReady && chatModelReady };
 }
@@ -195,7 +220,7 @@ export async function firstRunTasks({ modelsDir, dataDir, modelEntry, manifest =
   const emb = embeddingTask(manifest, modelsDir);
   if (!sizeMatches(emb.dest, emb.size)) tasks.push(emb);
   for (const t of indexTasks(manifest, dataDir)) if (!sizeMatches(t.dest, t.size)) tasks.push(t);
-  if (modelEntry && !existsByName(path.join(modelsDir, modelEntry.file)))
+  if (modelEntry && !existsByName(safeJoinOrNull(modelsDir, modelEntry.file) || ""))
     tasks.push(await modelTask(modelEntry, modelsDir, signal));
   return tasks;
 }
