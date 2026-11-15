@@ -9,6 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { downloadFile } from "./downloader.mjs";
 import { USER_AGENT } from "./user-agent.mjs";
+import { mergeCatalogModels, withDefault } from "./model-default.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -124,19 +125,21 @@ function loadCatalogBundled() {
 
 // Keep only models within the catalog's size range (a standalone shouldn't offer
 // models too heavy for typical VRAM, nor so small they hurt answer quality).
-function applyRange(catalog) {
+// `models` + `modelsV2` are merged (model-default.mjs) and, when the caller knows the GPU's
+// VRAM, the `default` flag moves to the model recommended for this machine.
+function applyRange(catalog, vramGB) {
   const min = catalog.range?.minGB ?? 0, max = catalog.range?.maxGB ?? Infinity;
-  const models = (catalog.models || []).filter((m) => {
+  const models = mergeCatalogModels(catalog).filter((m) => {
     if (!(m.sizeGB >= min && m.sizeGB <= max)) return false;
     if (!isSafeFileName(m.file)) { console.warn("[assets] catalog entry dropped: unsafe file name", JSON.stringify(String(m.file).slice(0, 80))); return false; }
     return true;
   });
-  return { ...catalog, models };
+  return { ...catalog, models: withDefault(models, vramGB) };
 }
 
 /** Load the chat-model catalog: try the remote (so it can be updated without an
  *  app release), fall back to the bundled copy. Filtered to the size range. */
-export async function loadCatalog({ signal } = {}) {
+export async function loadCatalog({ signal, vramGB } = {}) {
   try {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 5000);
@@ -144,10 +147,10 @@ export async function loadCatalog({ signal } = {}) {
     clearTimeout(t);
     if (res.ok) {
       const remote = await res.json();
-      if (Array.isArray(remote?.models) && remote.models.length) return applyRange(remote);
+      if (Array.isArray(remote?.models) && remote.models.length) return applyRange(remote, vramGB);
     }
   } catch { /* offline / unreachable → fallback */ }
-  return applyRange(loadCatalogBundled());
+  return applyRange(loadCatalogBundled(), vramGB);
 }
 
 // Resolve a model's exact download URL, SHA256 and size live from HuggingFace

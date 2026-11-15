@@ -42,7 +42,7 @@ let bad = 0, okc = 0;
 }
 
 // Catalog models: confirm the repo/file exist; sanity-check sizeGB.
-for (const m of catalog.models) {
+for (const m of [...(catalog.modelsV2 || []), ...catalog.models]) {
   const info = await hfFile(m.repo, m.file);
   if (info.error) { console.log(`✗ ${m.id} (${m.repo}/${m.file}): ${info.error}`); bad++; continue; }
   const gb = Number(info.size) / 1e9;

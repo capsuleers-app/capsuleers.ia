@@ -45,7 +45,7 @@ if (!saved) {
   configurePaths({ modelsDir: scratch, dataDir: DATA });
 }
 
-const REFUSAL = /non ho (questa|quest'|queste|l')?\s*informazion|non (è|e') (presente|indicat|specificat|riportat)|non (sono|risulta) disponibil|not (in|available in) the (provided )?(context|sources)|i don'?t have (this|that) information|does not (specify|mention|contain)/i;
+const REFUSAL = /non ho (questa|quest'|queste|l')?\s*informazion|non (è|e') (presente|indicat|specificat|riportat)|non (sono|risulta) disponibil|not (in|available in) the (provided )?(context|sources)|i don'?t have (this|that) information|does not (specify|mention|contain|provide|state)|(cannot|can't|unable to) (answer|determine|predict|be determined)|no information (about|on|regarding)|is not (mentioned|specified|stated|provided|available)|non (posso|è possibile) (rispondere|determinare|prevedere|saperlo)|nessuna informazione|non (viene|vengono) (menzionat|specificat|indicat)/i;
 
 const cases = fs.readFileSync(DATASET, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
   .filter((c) => (!only || only.has(c.id)) && (!cats || cats.has(c.cat)));
