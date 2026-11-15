@@ -43,6 +43,27 @@ for (const [q, want] of [
   ["recent battles", false],
 ]) ok(namesEntity(q) === want, `battaglie: ${JSON.stringify(q)} nomina un'entità = ${namesEntity(q)}`);
 
+// 5. A generic mechanics question names no entity and asks for no live figure → RAG
+//    (no live tool, no killboard name). Real live intents must keep routing. fetch is stubbed
+//    to record which eve-kill tool a question would call.
+const called = [];
+globalThis.fetch = async (u) => { called.push(String(u).split("/").pop()); return { ok: false }; };
+const { maybeMcp } = await import("../src/mcp-intel.mjs");
+const route = async (q) => { called.length = 0; await maybeMcp(q); return called.join(",") || "-"; };
+for (const q of ["cosa succede quando muoio in EVE?", "what happens when I die?", "come funzionano le kill right?",
+  "how do coalitions work?", "what happens when I lose a ship in EVE?"]) {
+  const r = await route(q);
+  ok(r === "-" && intelQuery(q) === "", `RAG, non live: ${JSON.stringify(q)} → tool ${r}, intelQuery ${JSON.stringify(intelQuery(q))}`);
+}
+for (const [q, tool] of [
+  ["cosa succede adesso in EVE?", "global_pulse"],
+  ["what's going on in eve right now", "global_pulse"],
+  ["quanto è pericoloso il sistema Tama?", "system_pulse"],
+  ["i kill più costosi", "expensive_losses"],
+  ["mostrami il killmail 123456789", "killmail"],
+  ["chi è Goonswarm Federation? battaglie recenti", "find_battles"],
+]) { const r = await route(q); ok(r.split(",")[0] === tool || (tool === "find_battles" && r === "-"), `live: ${JSON.stringify(q)} → ${r}`); }
+
 // 4. The slang expansion still works.
 ok(expandQuery("cosa è il sov").includes("sovereignty"), "sov → sovereignty");
 

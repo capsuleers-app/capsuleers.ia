@@ -38,6 +38,7 @@ const BY_SOURCE = {
   ccp_devdocs: [1, "CCP developer docs"],
   eve_university_wiki: [3, "EVE University"],
   capsuleers_articles: [3, "capsuleers.app"],
+  capsuleers_glossary: [3, "Capsuleers glossary"],
   eve_fandom_wiki: [4, "EVE Wiki (Fandom)"],
   sisters_probe_wiki: [4, "Sisters Probe Wiki (Fandom)"],
   eve_survival: [4, "eve-survival.org"],

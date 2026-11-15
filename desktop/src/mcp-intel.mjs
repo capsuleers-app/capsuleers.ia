@@ -459,6 +459,13 @@ const EMPTY = { text: "", entities: [], source: null, sourceTitle: null };
  * calls the relevant tool and returns a formatted live block. Returns EMPTY when nothing
  * matches (cheap: just regex tests, no network). Never throws.
  */
+// A question about how the game WORKS ("cosa succede quando muoio", "what happens when I die",
+// "come funzionano le kill", "how do coalitions work") names no entity and asks for no live
+// figure: it belongs to the RAG, whatever killboard word it contains. Live intents need a
+// concrete referent (killmail id/URL, a resolved name, a system); this is the generic opposite.
+const MECHANICS = /\b(?:cosa\s+succede\s+(?:quando|se)|che\s+succede\s+(?:quando|se)|what\s+happens\s+(?:when|if|after)|come\s+funzion\w+|how\s+(?:do|does|did)\b[^?]*\bwork|how\s+\w+\s+works?|cosa\s+(?:sono|significa|vuol\s+dire)\b|what\s+(?:are|does)\b[^?]*\bmean|quando\s+(?:io\s+)?(?:muoio|muori|perdo)|when\s+(?:i|you)\s+(?:die|lose))\b/i;
+export function isMechanicsQuestion(q) { return MECHANICS.test(q || ""); }
+
 export async function maybeMcp(question, standalone = question) {
   // Strip trailing punctuation (?, !, …) so $-anchored captures aren't broken — e.g.
   // "qual è il fitting del muninn?" must still resolve the doctrine follow-up (#5-bis).
@@ -487,6 +494,9 @@ export async function maybeMcp(question, standalone = question) {
         return d ? block(`dettaglio killmail ${killmail_id}`, d) : EMPTY;
       }
     }
+
+    // Generic mechanics question with no killmail referent → RAG (see MECHANICS).
+    if (MECHANICS.test(q)) return EMPTY;
 
     // 2) ROUTE DANGER — stargate route with per-hop danger. Needs a route intent + from/to.
     if (/\b(rotta|percors\w*|route|come\s+(?:ci\s+)?(?:arriv\w*|vad\w*|si\s+arriv\w*)|how\s+(?:do\s+i\s+|to\s+)?get|quanti\s+salti|jumps?\s+from|how\s+many\s+jumps)\b/i.test(q)) {
@@ -912,15 +922,17 @@ export async function maybeMcp(question, standalone = question) {
         || q.match(/\bsystem\s+pulse\s+([A-Za-z0-9][\w\- ]{1,30})/i);
       if (m) {
         const system = stripLead(clean(m[1]));
-        if (ok(system)) {
+        if (ok(system) && !/^(?:eve|game|new\s+eden|the\s+cluster|right\s+now)\b/i.test(system)) {
           const d = await callTool("system_pulse", { system });
           return d ? block(`polso del sistema ${system} (kill recenti, pericolosità, attività)`, d) : EMPTY;
         }
       }
     }
 
-    // 21) GLOBAL PULSE — cluster-wide activity snapshot (no entity).
-    if (/\b(?:cosa|che\s+cosa|che)\s+(?:succede|sta\s+succedendo|c['’]è)\b[^.]*\b(?:in\s+game|in\s+eve|nel\s+cluster|nello\s+spazio|adesso|ora|ovunque)\b/i.test(q)
+    // 21) GLOBAL PULSE — cluster-wide activity snapshot (no entity). "in game / in eve" alone
+    //     is not a live request ("cosa succede quando muoio in EVE?"): it needs a time marker
+    //     (adesso, ora, right now…) or an explicit cluster/space scope.
+    if (/\b(?:cosa|che\s+cosa|che)\s+(?:succede|sta\s+succedendo|c['’]è)\b[^.]*\b(?:adesso|ora|ovunque|nel\s+cluster|nello\s+spazio|in\s+questo\s+momento|al\s+momento|oggi)\b/i.test(q)
       || /\bpolso\s+(?:globale|del\s+cluster|di\s+eve|di\s+new\s+eden)\b/i.test(q)
       || /\battivit\S*\s+(?:globale|del\s+cluster|generale)\b/i.test(q)
       || /\b(?:global\s+pulse|global\s+activity|what['’]?s\s+(?:happening|going\s+on)\s+(?:in\s+eve|globally|right\s+now|across\s+(?:new\s+eden|the\s+cluster)))\b/i.test(q)) {

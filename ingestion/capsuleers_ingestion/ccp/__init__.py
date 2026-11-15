@@ -2,7 +2,8 @@
 every source that works as a Provider (listed with a version stamp, fetched only
 when it changed). capsuleers.app's own articles (L3, see capsuleers_app/) live here
 too: ccp_update.py and run.py --ccp iterate this registry, and so does the
-rag-publish workflow. The tier of each Document comes from its `source`, not from
+rag-publish workflow. The slang glossary (L3, a local file, see glossary/) is
+registered the same way. The tier of each Document comes from its `source`, not from
 being in this list.
 """
 
@@ -19,10 +20,12 @@ def providers(only: str | None = None, since: str | None = None) -> list[Provide
     """All providers, or the comma-separated subset `only`. `since` moves the
     news window (patch notes / dev blogs); the other sources are small and current."""
     # Imported here, not at module level: articles.py builds on ccp.common, and
-    # importing it while this package initialises would be circular.
+    # importing them while this package initialises would be circular.
     from ..capsuleers_app.articles import ArticlesProvider
+    from ..glossary import GlossaryProvider
     news = NewsProvider(since) if since else NewsProvider()
-    all_ = [news, SupportProvider(), AcademyProvider(), DevDocsProvider(), ArticlesProvider()]
+    all_ = [news, SupportProvider(), AcademyProvider(), DevDocsProvider(), ArticlesProvider(),
+            GlossaryProvider()]
     if only:
         wanted = {x.strip() for x in only.split(",")}
         unknown = wanted - {p.name for p in all_}

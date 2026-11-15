@@ -52,6 +52,13 @@ Orchestrator is [`desktop/src/engine.mjs`](../../desktop/src/engine.mjs):
   `eval/retrieval-holdout.jsonl` 19/22 → 22/22. `tools/probe-retrieval.mjs "<q>"` shows the ranking,
   `IA_DEBUG_PROMPT=1` prints the exact prompt. RRF was tried and lost the English Amulet question
   (rank fusion forgets that "Amulet" is a 22-chunk word and "implants" an 821-chunk one).
+- **Qualità delle risposte (batteria di 31 domande, indice 2026.11)** — tutte in `retrieval.mjs`/`engine.mjs`:
+  (1) *cosmetici*: SKIN e "… Edition Blueprint" aspettano dietro tutti gli altri candidati salvo domande su skin/edition (Rokh: 3/7 blocchi → 0).
+  (2) *compattazione*: il blocco "Requisiti skill (albero completo…)" dei record SDE di navi si omette (`compactText`) se la domanda non parla di skill/requisiti/pilotare, e il budget conta il blocco compattato: l'Archon SDE (2806 car.) rientra.
+  (3) *più entità + tema* (`planQuery`, `retrieveAsync`): ≥2 titoli interi nominati → un posto garantito al record primario di ciascuno (con una sola nave: il suo record SDE; con due navi le pagine wiki, più corte) + seconda ricerca sulla domanda senza i nomi (1 embedding extra, ~100 ms) subito dopo. Con 1 sola entità niente ricerca residua: interlacciarla faceva perdere caracal-skills/amulet-drop-en e aggiungeva "Brynn's Co-Processor" alla Rokh. "Gila o Ishtar per gli abyssal" → Ishtar + Gila + Abyssal FAQ/Community Fits (prima: solo Ishtar).
+  (4) *recenza*: con "ultimo/attuale/latest/current" i chunk datati "(YYYY-MM-DD)" ricevono +0.12 decrescente su 400 giorni rispetto alla data più recente dell'indice (non all'orologio); il prompt utente porta "DATA DI OGGI" e il SYSTEM ha una riga su "ultimo = fonte datata più recente, di' la data".
+  (5) *IT→EN* (`searchRewrite`, ~320 ms): query inglese ≤12 parole dal modello, interlacciata alla classifica originale dopo i primi 4 risultati (1 se la domanda non nomina entità), senza bonus titolo (con il bonus entravano Probe/Tournament Bubble). verify-retrieval resta 29/30 e 22/22 (come senza; col bonus titolo 30/30 ma peggiorava m2/t9); b2 guadagna Making Money/Earn Your Keep ma l'RMT resta, m7 invariato (Logistics c'era già).
+  (6) *smistamento*: `isMechanicsQuestion` (mcp-intel.mjs) blocca intent live e `intelQuery` per "cosa succede quando…/how does X work/come funzionano le kill"; il polso globale richiede un marcatore temporale (adesso/ora/right now…), non basta "in EVE".
 - **Answer eval / model choice** — `node desktop/tools/eval-answers.mjs <model.gguf>` runs the real
   `ask()` on `eval/answers.jsonl` (facts the answer must contain, reply language, `refuse` rows for
   unanswerable questions) in a scratch models dir (never touches `.selected-model`). Measure with
@@ -93,3 +100,4 @@ Orchestrator is [`desktop/src/engine.mjs`](../../desktop/src/engine.mjs):
   ([`prices.mjs`](../../desktop/src/prices.mjs), [`links.mjs`](../../desktop/src/links.mjs)) — otherwise the
   packaged app looks for lookup files inside `app.asar`. **`fit.mjs` no longer needs this** (its
   SDE is bundled in the `eve-fit-engine` package).
+- **Benchmark per categoria** (`eval/answers.jsonl`, 139 domande, Qwen3 4B, 2026-11-15, client EVE aperti): motore precedente 112/139 → 124/139 (computed 3→12, refuse 6→8; followup 8→7 resta il punto debole). Senza la riscrittura IT→EN (`IA_NO_REWRITE=1`, solo per misurare) 125/139 ma "ultima espansione" torna a fallire: resta attiva. Tra due passate identiche il 4B oscilla di ±2 domande.

@@ -12,8 +12,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getLlama } from "node-llama-cpp";
 import { bonusOf } from "../src/source-tiers.mjs";
-import { expandQuery } from "../src/engine.mjs";
-import { buildLexicalIndex, denseSearch, retrieve } from "../src/retrieval.mjs";
+import { expandQuery, compactText } from "../src/engine.mjs";
+import { buildLexicalIndex, denseSearch, retrieveAsync } from "../src/retrieval.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const APP = path.join(os.homedir(), ".config", "capsuleers-ia-desktop");
@@ -28,6 +28,8 @@ const show = argv.includes("--show");
 const DATASET = argv.includes("--dataset") ? path.resolve(argv[argv.indexOf("--dataset") + 1]) : DATASET_DEFAULT;
 // Tuning knobs (defaults = the ones the app runs): RETR_OPTS='{"alpha":0.15,"dupSim":0.9}'
 const opts = JSON.parse(process.env.RETR_OPTS || "{}");
+// REWRITES=file.json: {question: "English search query"} (made with engine.searchRewrite) → fused in.
+const rewrites = process.env.REWRITES ? JSON.parse(fs.readFileSync(process.env.REWRITES, "utf-8")) : {};
 
 const cases = fs.readFileSync(DATASET, "utf-8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
   .filter((c) => !only || only.has(c.id));
@@ -58,10 +60,10 @@ const hit = (i, w) => (w.startsWith("=") ? key(i) === w.slice(1).toLowerCase() :
 const rankOf = (ids, want) => ids.findIndex((i) => want.some((w) => hit(i, w)));
 // What the model actually sees: engine.mjs fills MAX_CONTEXT_CHARS in retrieval order,
 // skipping a block that does not fit. ~30 chars of tag per block.
-function inBudget(ids) {
+function inBudget(ids, q) {
   let used = 0; const out = [];
   for (const i of ids) {
-    const n = meta[i].title.length + meta[i].text.length + 30;
+    const n = meta[i].title.length + compactText(meta[i].text, q).length + 30;
     if (used + n > MAX_CONTEXT_CHARS) continue;
     used += n; out.push(i);
   }
@@ -74,10 +76,11 @@ for (const c of cases) {
   const full = denseSearch(index, vector, count).map(([, i]) => i);
   const old = rankOf(full, c.want);
   t = Date.now();
-  const ids = inBudget(retrieve(index, lex, vector, q, TOP_K, opts));
+  const embed = async (x) => (await embedCtx.getEmbeddingFor(x)).vector;
+  const ids = inBudget(await retrieveAsync(index, lex, vector, q, TOP_K, { embed, rewrites: rewrites[c.q] ? [rewrites[c.q]] : undefined, ...opts }), c.q);
   ms += Date.now() - t;
   const now = rankOf(ids, c.want);
-  const oldCtx = inBudget(full.slice(0, TOP_K));
+  const oldCtx = inBudget(full.slice(0, TOP_K), c.q);
   const oldIn = rankOf(oldCtx, c.want) >= 0;
   if (oldIn) hitOld++;
   if (now >= 0) hitNew++;
@@ -85,5 +88,5 @@ for (const c of cases) {
   console.log(`${now >= 0 ? "✓" : "✗"} ${c.id.padEnd(18)} denso ${fmt(old, oldIn).padEnd(5)} ibrido ${now >= 0 ? String(now + 1).padStart(3) : "  —"}`);
   if (show) ids.forEach((i, r) => console.log(`      ${String(r + 1).padStart(2)} ${(meta[i].source || meta[i].type || "").padEnd(20)} ${meta[i].title.slice(0, 90)}`));
 }
-console.log(`\nNel contesto (${MAX_CONTEXT_CHARS} caratteri): denso ${hitOld}/${cases.length} → ibrido ${hitNew}/${cases.length} · ${Math.round(ms / cases.length)} ms/domanda (escluso l'embedding)`);
+console.log(`\nNel contesto (${MAX_CONTEXT_CHARS} caratteri): denso ${hitOld}/${cases.length} → ibrido ${hitNew}/${cases.length} · ${Math.round(ms / cases.length)} ms/domanda (con gli embedding extra)`);
 process.exit(hitNew >= hitOld ? 0 : 1);

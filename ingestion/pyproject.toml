@@ -21,3 +21,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["capsuleers_ingestion*"]
+
+[tool.setuptools.package-data]
+capsuleers_ingestion = ["glossary/*.json"]
