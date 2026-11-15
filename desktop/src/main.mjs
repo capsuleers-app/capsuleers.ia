@@ -4,7 +4,7 @@ import { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, shell, Notificati
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
-import { configurePaths, init, ask, resetConversation, shutdown, listModels, setModel, vramState, deleteModelFile, assetPaths } from "./engine.mjs";
+import { configurePaths, init, ask, resetConversation, shutdown, listModels, setModel, vramState, totalVramGB, deleteModelFile, assetPaths } from "./engine.mjs";
 import { localIntel, characterDetail, sharePilotIntel, analyzeDScan, shareDScan } from "./intel.mjs";
 import { listEntries as listShareHistory, addEntry as addShareHistory, clearEntries as clearShareHistory } from "./intel-history.mjs";
 import { startWatch, stopWatch, isEnabled, scanNow } from "./clipboard-watch.mjs";
@@ -435,7 +435,7 @@ async function setupInfo() {
   let baseBytes = 0;
   if (!status.embeddingReady) baseBytes += manifest.embedding.size;
   if (!status.indexReady) baseBytes += manifest.index.files.reduce((s, f) => s + f.size, 0);
-  const catalog = await loadCatalog();
+  const catalog = await loadCatalog({ vramGB: await gpuTotalGB() });
   const installed = new Set(installedCatalogIds(catalog, assetDirs.modelsDir));
   const models = catalog.models.map((m) => ({
     id: m.id, label: m.label, sizeGB: m.sizeGB, paramsB: m.paramsB, quant: m.quant,
@@ -449,6 +449,11 @@ async function setupInfo() {
 }
 
 // Rough VRAM fit for a not-yet-downloaded model (size + ~1GB context vs free VRAM).
+// Total VRAM of the GPU (GB), or null: drives which catalog model is recommended on this
+// machine (model-default.mjs). Never throws — without it the catalog's fixed default is used.
+async function gpuTotalGB() {
+  try { return await totalVramGB(); } catch { return null; }
+}
 function fitRating(sizeGB, freeGB) {
   if (freeGB == null) return "";
   if (freeGB >= sizeGB + 1) return "veloce";
@@ -711,7 +716,7 @@ ipcMain.handle("models:set", async (_e, file) => {
 ipcMain.handle("models:catalog", async () => {
   try {
     const { modelsDir } = assetPaths();   // userData when packaged, project ./models in dev
-    const catalog = await loadCatalog();
+    const catalog = await loadCatalog({ vramGB: await gpuTotalGB() });
     const installed = new Set(installedCatalogIds(catalog, modelsDir));
     const v = await vramState().catch(() => null);
     const freeGB = v ? v.freeMB / 1024 : null;
@@ -827,7 +832,7 @@ ipcMain.handle("setup:start", async (_e, modelId) => {
   if (setupAbort) return { error: "Download già in corso." };
   setupAbort = new AbortController();
   try {
-    const catalog = await loadCatalog({ signal: setupAbort.signal });
+    const catalog = await loadCatalog({ signal: setupAbort.signal, vramGB: await gpuTotalGB() });
     const entry = catalog.models.find((m) => m.id === modelId) || catalog.models.find((m) => m.default) || catalog.models[0];
     const tasks = await firstRunTasks({ ...assetDirs, modelEntry: entry, signal: setupAbort.signal });
     await downloadTasks(tasks, {

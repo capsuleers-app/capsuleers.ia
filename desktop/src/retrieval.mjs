@@ -297,6 +297,46 @@ export function planQuery(lex, meta, query, titles) {
   return { groups: keys.map((k) => groups.get(k)), residual: residual.length ? [...new Set(residual)].join(" ") : null, residualText };
 }
 
+// ── The record of the thing the question names ──────────────────────────────
+// "quali skill servono per il Tengu?": the hull's SDE record (3 880 chars, rank 7) lost its
+// place to five "Tengu <subsystem>" records and four chat models answered with a subsystem's
+// skills. When the query names an entity whose whole title is a primary record (SDE ship /
+// module / skill / system…, or a glossary term), that record opens the context.
+const PRIMARY_TYPES = new Set(["ship", "module", "skill", "system", "region", "constellation", "glossary"]);
+const MAX_PRIMARY = 2;
+function entityGroups(meta, titles) {
+  const groups = new Map();
+  for (const d of titles) {
+    const key = meta[d].title.toLowerCase();
+    (groups.get(key) || groups.set(key, []).get(key)).push(d);
+  }
+  // A title whose tokens are all part of a longer matched title is the same entity
+  // ("Vexor" inside "Vexor Navy Issue").
+  const toks = [...groups.keys()].map((k) => [k, new Set(tokenize(k))]);
+  const keep = toks.filter(([k, t]) => !toks.some(([k2, t2]) => k2 !== k && t2.size > t.size && [...t].every((x) => t2.has(x))));
+  return keep.map(([k]) => groups.get(k));
+}
+function primaryRecords(index, titles, order) {
+  const at = new Map(order.map((d, i) => [d, i]));
+  const isPrimary = (d) => {
+    const m = index.meta[d];
+    return PRIMARY_TYPES.has(m.type) && !isCosmetic(m) && (m.source ? m.source === "ccp_sde" || m.source === "capsuleers_glossary" : !m.url);
+  };
+  return entityGroups(index.meta, titles).map((g) => g.filter(isPrimary)[0]).filter((d) => d !== undefined)
+    .sort((a, b) => (at.get(a) ?? 1e9) - (at.get(b) ?? 1e9)).slice(0, MAX_PRIMARY);
+}
+/** Titles of the entities a query names (whole-title matches, longest wins), for follow-ups. */
+export function namedEntities(lex, meta, query, max = 3) {
+  if (!lex) return [];
+  const titles = titleMatches(lex, meta, query);
+  const out = [];
+  for (const g of entityGroups(meta, titles)) {
+    const d = g.find((x) => PRIMARY_TYPES.has(meta[x].type)) ?? g[0];
+    if (!out.includes(meta[d].title)) out.push(meta[d].title);
+  }
+  return out.sort((a, b) => b.length - a.length).slice(0, max);
+}
+
 // One ranked list (best first) for a query vector: dense + lexical + title matches, cosmetic deferred.
 function rank(index, lex, qvec, query, o, titles, boost) {
   const dense = denseSearch(index, qvec, DENSE_POOL);
@@ -328,6 +368,7 @@ export function retrieve(index, lex, qvec, query, k = 12, o = {}) {
   const merged = [], seen = new Set();
   const push = (d) => { if (!seen.has(d)) { seen.add(d); merged.push(d); } };
   const multi = plan && plan.groups.length >= 2;
+  if (!multi && !o.noPrimary) primaryRecords(index, titles, main).forEach(push);
   if (plan) {
     // One guaranteed slot per entity: its best-ranked non-cosmetic record — except when exactly
     // one named entity is a hull: then the SDE ship record (slots, bonuses, attributes, skills:

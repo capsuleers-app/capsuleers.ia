@@ -1,23 +1,58 @@
 {
   "schemaVersion": 1,
-  "_note": "Updatable catalog of selectable chat models. The app fetches this file from the repo at runtime (raw GitHub) so new models appear WITHOUT an app update; this bundled copy is the offline fallback. Each entry is just a HuggingFace repo + file: the app resolves the exact size and SHA256 live from HuggingFace (LFS oid) at download time, so no checksum maintenance is needed. 'sizeGB'/'paramsB' are approximate, used only for display and the VRAM range filter. 'default': true pre-selects the model at first run and shows the Recommended badge; 'recommended' is a short Italian hint shown under the model. To add a model: append an entry within the size range below and validate the repo/file exist on HuggingFace.",
-  "range": { "minGB": 1.8, "maxGB": 9.0 },
+  "_note": "Updatable catalog of selectable chat models. The app fetches this file from the repo at runtime (raw GitHub) so new models appear WITHOUT an app update; this bundled copy is the offline fallback. Each entry is just a HuggingFace repo + file: the app resolves the exact size and SHA256 live from HuggingFace (LFS oid) at download time, so no checksum maintenance is needed. 'sizeGB'/'paramsB' are approximate, used only for display and the VRAM range filter. 'default': true pre-selects the model at first run and shows the Recommended badge; 'recommended' is a short Italian hint shown under the model. To add a model: append an entry within the size range below and validate the repo/file exist on HuggingFace. 'modelsV2' holds models that need app >= 0.1.74 (reasoning models, run with a zero thought budget): older app versions read only 'models', so they never see them. 'rank' + 'minVramGB' drive the per-machine recommendation (model-default.mjs): the highest rank whose minVramGB fits the GPU's total VRAM; without GPU info the 'default' entry is used.",
+  "range": {
+    "minGB": 1.8,
+    "maxGB": 9.0
+  },
+  "modelsV2": [
+    {
+      "id": "gemma-4-12b",
+      "label": "Gemma 4 12B",
+      "repo": "unsloth/gemma-4-12b-it-GGUF",
+      "file": "gemma-4-12b-it-Q4_K_M.gguf",
+      "paramsB": 12,
+      "quant": "Q4_K_M",
+      "sizeGB": 7.1,
+      "rank": 3,
+      "minVramGB": 11,
+      "recommended": "La qualità più alta misurata: italiano corretto e conversazioni a più domande. Serve una GPU da 12 GB."
+    },
+    {
+      "id": "qwen3.5-9b",
+      "label": "Qwen3.5 9B",
+      "repo": "unsloth/Qwen3.5-9B-GGUF",
+      "file": "Qwen3.5-9B-Q4_K_M.gguf",
+      "paramsB": 9,
+      "quant": "Q4_K_M",
+      "sizeGB": 5.7,
+      "rank": 2,
+      "minVramGB": 8,
+      "recommended": "Più accurato del 4B e buon italiano; per GPU da 8 GB."
+    }
+  ],
   "models": [
     {
       "id": "qwen3-4b",
       "label": "Qwen3 4B Instruct 2507",
       "repo": "unsloth/Qwen3-4B-Instruct-2507-GGUF",
       "file": "Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
-      "paramsB": 4, "quant": "Q4_K_M", "sizeGB": 2.5,
+      "paramsB": 4,
+      "quant": "Q4_K_M",
+      "sizeGB": 2.5,
       "default": true,
-      "recommended": "Equilibrio velocità/qualità, gira bene anche su GPU da 6-8 GB."
+      "recommended": "Equilibrio velocità/qualità, gira bene anche su GPU da 6-8 GB.",
+      "rank": 1,
+      "minVramGB": 0
     },
     {
       "id": "qwen2.5-3b",
       "label": "Qwen2.5 3B Instruct",
       "repo": "bartowski/Qwen2.5-3B-Instruct-GGUF",
       "file": "Qwen2.5-3B-Instruct-Q4_K_M.gguf",
-      "paramsB": 3, "quant": "Q4_K_M", "sizeGB": 1.9,
+      "paramsB": 3,
+      "quant": "Q4_K_M",
+      "sizeGB": 1.9,
       "recommended": "Il più leggero: per GPU piccole o solo-CPU."
     },
     {
@@ -25,7 +60,9 @@
       "label": "Qwen2.5 7B Instruct",
       "repo": "bartowski/Qwen2.5-7B-Instruct-GGUF",
       "file": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
-      "paramsB": 7, "quant": "Q4_K_M", "sizeGB": 4.7,
+      "paramsB": 7,
+      "quant": "Q4_K_M",
+      "sizeGB": 4.7,
       "recommended": "Più accurato; richiede ~6-8 GB di VRAM per stare tutto in GPU."
     },
     {
@@ -33,7 +70,9 @@
       "label": "Qwen2.5 14B Instruct",
       "repo": "bartowski/Qwen2.5-14B-Instruct-GGUF",
       "file": "Qwen2.5-14B-Instruct-Q4_K_M.gguf",
-      "paramsB": 14, "quant": "Q4_K_M", "sizeGB": 9.0,
+      "paramsB": 14,
+      "quant": "Q4_K_M",
+      "sizeGB": 9.0,
       "recommended": "Massima qualità per Q&A complessi; richiede GPU da 8+ GB."
     },
     {
@@ -41,7 +80,9 @@
       "label": "Mistral Nemo Instruct 2407",
       "repo": "bartowski/Mistral-Nemo-Instruct-2407-GGUF",
       "file": "Mistral-Nemo-Instruct-2407-Q4_K_M.gguf",
-      "paramsB": 12, "quant": "Q4_K_M", "sizeGB": 7.5,
+      "paramsB": 12,
+      "quant": "Q4_K_M",
+      "sizeGB": 7.5,
       "recommended": "Il più capace; serve una GPU da 8+ GB per essere veloce."
     }
   ]
