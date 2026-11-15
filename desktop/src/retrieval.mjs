@@ -69,6 +69,7 @@ better best good eve online
 
 const TOKEN = /[\p{L}\p{N}]+/gu;
 const MAX_TITLE_NGRAM = 6;
+const TITLE_PHRASE_TYPES = new Set(["ship", "module", "skill", "item", "system", "region", "constellation", "glossary"]);
 
 /** Lower-cased word tokens (letters/digits, any script), length ≥ 2. */
 export function tokenize(text) {
@@ -91,7 +92,9 @@ export function buildLexicalIndex(meta) {
     const toks = tokenize(`${meta[i].title || ""} ${meta[i].text || ""}`);
     docLen[i] = toks.length; total += toks.length;
     const tt = tokenize(meta[i].title);
-    if (tt.length >= 2 && tt.length <= MAX_TITLE_NGRAM) { const k = tt.join(" "); (byTitle.get(k) || byTitle.set(k, []).get(k)).push(i); }
+    // Only records of game entities (SDE, glossary): as a phrase rule over every title it
+    // made the Fandom page "Tech II" a title match for any question that says "Tech II".
+    if (tt.length >= 2 && tt.length <= MAX_TITLE_NGRAM && !meta[i].url && TITLE_PHRASE_TYPES.has(meta[i].type)) { const k = tt.join(" "); (byTitle.get(k) || byTitle.set(k, []).get(k)).push(i); }
     const tf = new Map();
     for (const t of toks) tf.set(t, (tf.get(t) || 0) + 1);
     for (const [t, c] of tf) {

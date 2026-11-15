@@ -102,7 +102,7 @@
 {"id": "adv-explore", "cat": "advice", "q": "che nave uso per l'esplorazione, hacking di data e relic site?", "lang": "it", "must": [["Heron", "Magnate", "Imicus", "Probe", "Buzzard", "Helios", "Anathema", "Cheetah"]]}
 {"id": "adv-l3-en", "cat": "advice", "q": "which ships are good for level 3 missions?", "lang": "en", "must": [["Gila", "Drake", "Ferox", "Caracal", "Hurricane", "Myrmidon", "Cyclone", "Brutix", "Harbinger", "Battlecruiser", "Heavy Assault"]]}
 {"id": "adv-l1", "cat": "advice", "q": "che nave va bene per le missioni di livello 1?", "lang": "it", "must": [["destroyer", "cacciatorpediniere"]]}
-{"id": "adv-tengu-en", "cat": "advice", "q": "is the Tengu a good level 4 mission ship?", "lang": "en", "must": [["battleship", "corazzat"], ["cloak", "nulli", "blitz"]]}
+{"id": "adv-tengu-en", "cat": "advice", "q": "is the Tengu a good level 4 mission ship?", "lang": "en", "must": [["PvE", "mission", "strategic cruiser"], ["shield", "missile", "cloak", "nulli", "blitz", "battleship"]]}
 {"id": "adv-cruise-en", "cat": "advice", "q": "which battleships work well with cruise missiles in L4 missions?", "lang": "en", "must": [["Raven", "Typhoon", "Praxis"]]}
 {"id": "adv-drones-bs", "cat": "advice", "q": "battleship migliore per missioni L4 con i droni?", "lang": "it", "must": [["Rattlesnake", "Dominix"]]}
 {"id": "adv-l5-en", "cat": "advice", "q": "what do people use for level 5 missions?", "lang": "en", "must": [["carrier", "Marauder"]]}
