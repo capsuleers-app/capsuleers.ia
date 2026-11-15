@@ -21,6 +21,7 @@ python -m capsuleers_ingestion.update                                   # daily 
   app downloads them (plus the embedding model + a chat model) into userData. `refreshDataFiles()`
   re-downloads any file whose size drifts from the manifest, so installs pick up new data without a
   reinstall — the big vector index is untouched when unchanged.
+- `downloadFile` never deletes the current file before the new one is verified (atomic rename); a `.part` is resumed only if its sidecar `.part.id` matches the expected sha256 (else discarded). `loadEffectiveManifest` prefers the bundled manifest over an older persisted one whose files are not installed. Check: `node desktop/tools/verify-index-update.mjs`.
 - The index is released separately on GitHub Releases (tag `index-<version>`); the installer is "lite"
   (code only). See [`RELEASING.md`](../../RELEASING.md).
 
@@ -96,3 +97,4 @@ sites), EVE Wiki on Fandom (CC BY-SA, EN), Riley Entertainment guides (no explic
 (prices), ESI, eve-kill (killboard + MCP), EVE-Scout. Source code is MIT; GGUF models keep their own
 licenses and are not redistributed. See [`THIRD_PARTY.md`](../../THIRD_PARTY.md). Unofficial, non-commercial
 fan project — not affiliated with Fenris Creations.
+- **Testo embeddato ≠ testo mostrato** (`index.embed_text`, stessa regola in `desktop/build-index.mjs`): un record `ccp_sde` si embedda SENZA la riga "Attributi: …" (resta nel testo salvato). Con l'elenco, il record di una nave stava a coseno 0,26-0,38 dalle domande su quella nave; senza a 0,44-0,69 (Caracal: rango denso 17 132 → nei primi 10). Tocca 9 312 record; **serve una ricostruzione completa** (`rag-publish` con `mode=full`) perché record SDE nuovi, glossario e questa regola arrivino nell'indice pubblicato.

@@ -5,7 +5,7 @@
    "o 7"
   ],
   "en": "A text emoticon of a person saluting. Players use it to greet, thank, show respect or say farewell, for example to an enemy after a good fight or to a fallen pilot.",
-  "it": "Emoticon testuale di una persona che fa il saluto militare. I giocatori lo usano per salutare, ringraziare, mostrare rispetto o congedarsi, ad esempio verso un nemico dopo un bel combattimento o verso un pilota caduto."
+  "it": "Emoticon testuale di una persona che fa il saluto. I giocatori lo usano per salutare, ringraziare, mostrare rispetto o congedarsi, ad esempio verso un nemico dopo un buon scontro o verso un pilota caduto."
  },
  {
   "term": "o/",
@@ -76,7 +76,7 @@
    "tackler"
   ],
   "en": "Holding a target in place so it cannot escape: warp disruptors (points), warp scramblers (scrams) and stasis webifiers (webs). A 'tackle' ship (interceptor, interdictor) is one whose job is to catch targets, and a pinned target is 'tackled'.",
-  "it": "Bloccare un bersaglio perché non possa fuggire: warp disruptor (point), warp scrambler (scram) e stasis webifier (web). Una nave 'tackle' (interceptor, interdictor) ha il compito di agganciare i bersagli, e un bersaglio bloccato è 'tackled'."
+  "it": "Bloccare un bersaglio perché non possa fuggire: warp disruptor (point), warp scrambler (scram) e stasis webifier (web). Una nave 'tackle' (interceptor, interdictor) ha il compito di bloccare i bersagli, e un bersaglio bloccato è 'tackled'."
  },
  {
   "term": "Point",
@@ -134,7 +134,7 @@
    "cyno pilot"
   ],
   "en": "An alternate character kept to light the cynosural field for a capital or bridge fleet. It sits in a cheap, often cloaked, ship while the main character's ships jump in.",
-  "it": "Un personaggio alternativo tenuto per accendere il cynosural field per una flotta di capital o per un ponte. Resta in una nave economica, spesso cloaked, mentre le navi del personaggio principale saltano."
+  "it": "Un personaggio alternativo tenuto per accendere il cynosural field per una flotta di capital o per un bridge. Resta in una nave economica, spesso cloaked, mentre le navi del personaggio principale saltano."
  },
  {
   "term": "Hot drop",
@@ -143,7 +143,7 @@
    "hot dropping"
   ],
   "en": "Jumping capital ships or a bridged fleet onto a cyno on the same grid as an ongoing fight, so that the enemy suddenly faces a much larger force. A common bait tactic: a small fleet engages, then the 'hot drop' lands on top of the enemy.",
-  "it": "Far saltare capital o una flotta tramite ponte su un cyno sulla stessa grid di uno scontro in corso, così che il nemico si trovi di colpo davanti una forza molto più grande. Tattica comune con una esca: una piccola flotta ingaggia, poi la 'hot drop' arriva addosso al nemico."
+  "it": "Far saltare capital o una flotta portata con un bridge su un cyno sulla stessa grid di uno scontro in corso, così che il nemico si trovi di colpo davanti una forza molto più grande. Tattica comune con un'esca: una piccola flotta ingaggia, poi la 'hot drop' arriva addosso al nemico."
  },
  {
   "term": "Bridge",
@@ -161,7 +161,7 @@
    "bridge titan"
   ],
   "en": "A Jump Portal Generator fitted on a Titan: it opens a portal to a cynosural field and lets a whole fleet jump through it. It is used to move fleets across long distances or onto a target quickly.",
-  "it": "Un Jump Portal Generator montato su un Titan: apre un portale verso un cynosural field e permette a a un'intera flotta di attraversarlo. Si usa per spostare flotte su lunghe distanze o su un bersaglio rapidamente."
+  "it": "Un Jump Portal Generator montato su un Titan: apre un portale verso un cynosural field e permette a un'intera flotta di attraversarlo. Si usa per spostare flotte su lunghe distanze o rapidamente su un bersaglio."
  },
  {
   "term": "Ansiblex",
@@ -171,7 +171,7 @@
    "jb"
   ],
   "en": "An Ansiblex Jump Gate: a player-owned structure that connects two systems within its range, letting fleets travel instantly between them with a jump bridge. Alliances build networks of them in null-sec.",
-  "it": "Un Ansiblex Jump Gate: una struttura dei giocatori che collega due sistemi entro il suo raggio, permettendo alle flotte di spostarsi istantaneamente tra loro con un jump bridge. Le alleanze costruiscono reti di Ansiblex in null-sec."
+  "it": "Un Ansiblex Jump Gate: una struttura di proprietà dei giocatori che collega due sistemi entro il suo raggio, permettendo alle flotte di spostarsi istantaneamente tra loro con un jump bridge. Le alleanze costruiscono reti di Ansiblex in null-sec."
  },
  {
   "term": "Doctrine",
@@ -199,7 +199,7 @@
    "damage dealer"
   ],
   "en": "Damage Per Second: the damage a ship or weapon deals each second. It also names the role: DPS ships are the fleet members whose job is to deal damage, as opposed to logi or tackle.",
-  "it": "Damage Per Second: il danno che una nave o un'arma infligge ogni secondo. Indica anche il ruolo: le navi DPS sono quelle della flotta con il compito di fare danno, a differenza di logi o tackle."
+  "it": "Damage Per Second: il danno che una nave o un'arma infligge ogni secondo. Indica anche il ruolo: le navi DPS sono quelle della flotta con il compito di infliggere danno, a differenza di logi o tackle."
  },
  {
   "term": "EWAR",
@@ -208,7 +208,7 @@
    "e-war"
   ],
   "en": "Electronic Warfare: modules and ships that disrupt the enemy instead of damaging it, such as ECM (breaks locks), sensor dampeners, tracking disruptors and target painters. Recon ships and some frigates specialise in it.",
-  "it": "Electronic Warfare: moduli e navi che disturbano il nemico invece di danneggiarlo, come ECM (spezza i lock), sensor dampener, tracking disruptor e target painter. Le navi Recon e alcune frigate sono specializzate in questo."
+  "it": "Electronic Warfare: moduli e navi che disturbano il nemico invece di danneggiarlo, come ECM (spezza i lock), sensor dampener, tracking disruptor e target painter. Le navi Recon e alcune frigate sono specializzate in questo ruolo."
  },
  {
   "term": "Alpha strike",
@@ -235,7 +235,7 @@
    "brawler"
   ],
   "en": "Fighting at close range, usually with high-damage short-range weapons and strong tank, orbiting or sitting on top of the target. The opposite of kiting.",
-  "it": "Combattere a distanza ravvicinata, di solito con armi a corto raggio ad alto danno e un buon tank, orbitando o stando addosso al bersaglio. L'opposto del kiting."
+  "it": "Combattere a distanza ravvicinata, di solito con armi a corto range e alto danno e un tank robusto, orbitando o stando addosso al bersaglio. L'opposto del kiting."
  },
  {
   "term": "Transversal",
@@ -264,7 +264,7 @@
    "safespot"
   ],
   "en": "A bookmark in empty space, away from any celestial, where a ship can wait or log off out of reach of simple warp-ins. It is not completely safe: probes and d-scan can still find it.",
-  "it": "Un bookmark nello spazio vuoto, lontano da ogni celestial, dove una nave può aspettare o fare logoff fuori dalla portata di semplici warp-in. Non è del tutto sicuro: sonde e d-scan possono comunque trovarlo."
+  "it": "Un bookmark nello spazio vuoto, lontano da ogni celestial, dove una nave può aspettare o fare logoff fuori dalla portata di semplici warp-in. Non è del tutto sicuro: le probe e il d-scan possono comunque trovarlo."
  },
  {
   "term": "Bookmark",
@@ -290,7 +290,7 @@
    "call to arms"
   ],
   "en": "Call To Arms: an important, often mandatory alliance fleet, typically to defend or attack a sovereignty structure. Attendance is often tracked.",
-  "it": "Call To Arms: una flotta d'alleanza importante, spesso obbligatoria, di solito per difendere o attaccare una struttura di sovranità. La presenza viene spesso registrata."
+  "it": "Call To Arms: una flotta d'alleanza importante, spesso obbligatoria, di solito per difendere o attaccare una struttura di sovereignty. La presenza viene spesso registrata."
  },
  {
   "term": "Stratop",
@@ -300,7 +300,7 @@
    "stratops"
   ],
   "en": "Strategic Operation: a large, organised alliance fleet aimed at a strategic objective, such as a sovereignty or structure fight. Its importance is similar to a CTA and it is announced in advance with a ping.",
-  "it": "Strategic Operation: una grande flotta d'alleanza organizzata con un obiettivo strategico, come uno scontro per sovranità o strutture. Ha un'importanza simile a una CTA e viene annunciata in anticipo con un ping."
+  "it": "Strategic Operation: una grande flotta d'alleanza organizzata con un obiettivo strategico, come uno scontro per la sovereignty o per delle strutture. Ha un'importanza simile a una CTA e viene annunciata in anticipo con un ping."
  },
  {
   "term": "SRP",
@@ -319,7 +319,7 @@
    "cloaky"
   ],
   "en": "A pilot who sits in a system in a cloaked ship, often away from the keyboard, to make locals nervous and stop them from using the system safely. A cloaked ship cannot be seen on d-scan or locked, but can be found and decloaked with luck.",
-  "it": "Un pilota che resta in un sistema con una nave cloaked, spesso lontano dalla tastiera, per mettere in ansia i locali e impedire loro di usare il sistema in sicurezza. Una nave cloaked non si vede con il d-scan e non si può agganciare, ma può essere trovata e decloakata con un po' di fortuna."
+  "it": "Un pilota che resta in un sistema con una nave cloaked, spesso lontano dalla tastiera, per mettere in ansia i locali e impedire loro di usare il sistema in sicurezza. Una nave cloaked non si vede con il d-scan e non si può lockare, ma può essere trovata e decloakata con un po' di fortuna."
  },
  {
   "term": "Awox",
@@ -328,7 +328,7 @@
    "awoxer"
   ],
   "en": "Attacking your own corporation or fleet from within: a player joins a corp or fleet to gain trust, then kills its members or steals from it. Most fleets and corps treat it as a serious breach of trust.",
-  "it": "Attaccare la propria corporation o flotta dall'interno: un giocatore entra in una corp o flotta per guadagnare fiducia, poi uccide i membri o li deruba. La maggior parte di flotte e corp lo considera un grave tradimento della fiducia."
+  "it": "Attaccare la propria corp o flotta dall'interno: un giocatore entra in una corp o flotta per guadagnare fiducia, poi ne uccide i membri o la deruba. La maggior parte di flotte e corp lo considera una grave violazione della fiducia."
  },
  {
   "term": "Blue",
@@ -356,7 +356,7 @@
    "neut standing"
   ],
   "en": "A pilot with no standing, neither blue nor red, shown with a neutral icon. Alliances differ on how to treat neutrals: NBSI shoots them, NRDS leaves them alone.",
-  "it": "Un pilota senza standing, né blu né rosso, mostrato con un'icona neutra. Le alleanze trattano i neutrali in modo diverso: NBSI gli spara, NRDS li lascia stare."
+  "it": "Un pilota senza standing, né blue né red, mostrato con un'icona neutra. Le alleanze trattano i neutral in modo diverso: NBSI spara loro, NRDS li lascia stare."
  },
  {
   "term": "NBSI",
@@ -364,7 +364,7 @@
    "not blue shoot it"
   ],
   "en": "Not Blue Shoot It: a sovereignty policy where everyone who is not explicitly blue is treated as hostile and attacked. It is the strict counterpart of NRDS.",
-  "it": "Not Blue Shoot It: una politica di sovranità in cui chiunque non sia esplicitamente blue viene trattato come ostile e attaccato. È la controparte rigida di NRDS."
+  "it": "Not Blue Shoot It: una politica di sovereignty in cui chiunque non sia esplicitamente blue viene trattato come ostile e attaccato. È la controparte rigida di NRDS."
  },
  {
   "term": "NRDS",
@@ -383,7 +383,7 @@
    "pod kill"
   ],
   "en": "A pilot is 'podded' when his capsule is destroyed after the ship, killing the pilot. He respawns in his medical clone, normally at the home station, and loses the implants of the destroyed capsule.",
-  "it": "Un pilota è 'podded' quando la sua capsule viene distrutta dopo la nave, uccidendo il pilota. Rinasce nel suo medical clone, normalmente alla stazione di casa, e perde gli impianti della capsule distrutta."
+  "it": "Un pilota è 'podded' quando la sua capsule viene distrutta dopo la nave, uccidendo il pilota. Rinasce nel suo medical clone, normalmente alla stazione di casa, e perde gli implant della capsule distrutta."
  },
  {
   "term": "Pod express",
@@ -392,7 +392,7 @@
    "express"
   ],
   "en": "Deliberately getting podded to respawn quickly at the home station clone instead of traveling back. It costs the implants you were wearing, so it is only worth it with none or with cheap ones.",
-  "it": "Farsi uccidere apposta in capsule per rinascere subito nel clone della stazione di casa invece di rientrare viaggiando. Costa gli impianti che si indossano, quindi conviene solo senza impianti o con impianti economici."
+  "it": "Farsi uccidere apposta la capsule per rinascere subito nel clone della stazione di casa invece di tornare viaggiando. Costa gli implant che si indossano, quindi conviene solo senza implant o con implant economici."
  },
  {
   "term": "D-scan",
@@ -422,7 +422,7 @@
    "w-space"
   ],
   "en": "Wormhole space: systems with a J-number name (such as J123456) reachable only through wormholes. They have no stargates, no local list for pilots who do not speak, and hold Sleepers and valuable resources.",
-  "it": "Wormhole space: sistemi con nome J-numero (come J123456) raggiungibili solo tramite wormhole. Non hanno stargate, non hanno lista Local per chi non parla, e contengono Sleeper e risorse di valore."
+  "it": "Wormhole space: sistemi con un nome tipo J123456, raggiungibili solo tramite wormhole. Non hanno stargate, il Local non elenca i piloti che non parlano, e contengono Sleeper e risorse di valore."
  },
  {
   "term": "C1-C6",
@@ -464,7 +464,7 @@
    "disrupted wormhole"
   ],
   "en": "A wormhole that has less than 50% of its total mass left. It is shown as disrupted in the signature info, and a few more big jumps could close it.",
-  "it": "Un wormhole che ha meno del 50% della sua massa totale rimasta. Compare come disrupted nelle informazioni della signature, e pochi altri salti pesanti possono chiuderlo."
+  "it": "Un wormhole a cui resta meno del 50% della massa totale. Compare come disrupted nelle informazioni della signature, e pochi altri salti pesanti possono chiuderlo."
  },
  {
   "term": "Crit hole",
@@ -474,7 +474,7 @@
    "critical wormhole"
   ],
   "en": "A wormhole with less than 10% of its mass left. Any large ship passing through can collapse it, so travel through a crit hole risks being stranded on the other side.",
-  "it": "Un wormhole con meno del 10% della massa rimasta. Qualsiasi nave grande che lo attraversa può farlo collassare, quindi passare da un crit hole rischia di lasciarti bloccato dall'altra parte."
+  "it": "Un wormhole a cui resta meno del 10% della massa. Qualsiasi nave grande che lo attraversa può farlo collassare, quindi passare da un crit hole rischia di lasciarti bloccato dall'altra parte."
  },
  {
   "term": "EOL",
@@ -483,7 +483,7 @@
    "eol wormhole"
   ],
   "en": "End Of Life: a wormhole with less than 4 hours before it collapses by age. Never rely on an EOL hole to get home.",
-  "it": "End Of Life: un wormhole che collasserà per età entro meno di 4 ore. Non contare mai su un buco EOL per tornare a casa."
+  "it": "End Of Life: un wormhole che collasserà per età entro meno di 4 ore. Non contare mai su un wormhole EOL per tornare a casa."
  },
  {
   "term": "Capital",
@@ -493,7 +493,7 @@
    "capitals"
   ],
   "en": "Capital ship: a very large ship class with a jump drive and a big tank, including carriers, dreadnoughts, Force Auxiliaries, and the Rorqual. 'Cap' can also mean capacitor, so the context matters.",
-  "it": "Capital ship: una classe di navi molto grandi con jump drive e tank elevato, che include carrier, dreadnought, Force Auxiliary e Rorqual. 'Cap' può anche voler dire capacitor, quindi conta il contesto."
+  "it": "Capital ship: una classe di navi molto grandi con jump drive e un grande tank, che include carrier, dreadnought, Force Auxiliary e Rorqual. 'Cap' può anche voler dire capacitor, quindi conta il contesto."
  },
  {
   "term": "Super",
@@ -512,7 +512,7 @@
    "dreads"
   ],
   "en": "Dreadnought: a capital warship that excels at damage against structures and other capitals. In siege mode it deals huge damage but cannot move or jump until the module cycle ends.",
-  "it": "Dreadnought: una nave da guerra capital eccellente nel danno contro strutture e altri capital. In modalità siege fa danni enormi ma non può muoversi né saltare finché il ciclo del modulo non finisce."
+  "it": "Dreadnought: una capital ship da combattimento eccellente nel danno contro strutture e altri capital. In modalità siege fa danni enormi ma non può muoversi né saltare finché il ciclo del modulo non finisce."
  },
  {
   "term": "FAX",
@@ -557,7 +557,7 @@
    "downtime"
   ],
   "en": "Downtime: the daily server maintenance, at 11:00 UTC, when the game is offline for a short time. Planned events and structure timers are often described relative to downtime.",
-  "it": "Downtime: la manutenzione giornaliera del server, alle 11:00 UTC, in cui il gioco è offline per poco tempo. Eventi pianificati e timer delle strutture sono spesso espressi rispetto al downtime."
+  "it": "Downtime: la manutenzione giornaliera del server, alle 11:00 UTC, in cui il gioco è offline per un breve periodo. Eventi pianificati e timer delle strutture sono spesso espressi rispetto al downtime."
  },
  {
   "term": "TQ",
@@ -659,7 +659,7 @@
    "instaundock"
   ],
   "en": "A bookmark set up so that a pilot can warp away, or warp in on arrival, the moment he undocks, instead of sitting at the station. It reduces the time a pilot can be caught at an undock camp.",
-  "it": "Un bookmark preparato in modo che un pilota possa entrare in warp, o arrivare in warp, appena fa undock, invece di restare alla stazione. Riduce il tempo in cui un pilota può essere colto da un camp all'undock."
+  "it": "Un bookmark preparato in modo che un pilota possa entrare in warp, o arrivare in warp, appena fa undock, invece di restare alla stazione. Riduce il tempo in cui un pilota può essere preso da un undock camp."
  },
  {
   "term": "Alpha",
@@ -705,7 +705,7 @@
    "alt character"
   ],
   "en": "An alternate character, belonging to a player's account or to a second account. Alts are used for hauling, scouting, market, cyno and other support roles.",
-  "it": "Un personaggio alternativo, dell'account del giocatore o di un secondo account. Gli alt si usano per trasporto, scouting, mercato, cyno e altri ruoli di supporto."
+  "it": "Un personaggio alternativo, appartenente all'account del giocatore o a un secondo account. Gli alt si usano per hauling, scouting, mercato, cyno e altri ruoli di supporto."
  },
  {
   "term": "Jump clone",
@@ -714,7 +714,7 @@
    "clone jump"
   ],
   "en": "A secondary clone kept in another station or structure that a pilot can jump into, moving his character there instantly. Used to travel across space or to swap implant sets, within a 24-hour cooldown.",
-  "it": "Un clone secondario tenuto in un'altra stazione o struttura in cui il pilota può saltare, spostando il personaggio lì istantaneamente. Si usa per viaggiare nello spazio o cambiare set di impianti, con un cooldown di 24 ore."
+  "it": "Un clone secondario tenuto in un'altra stazione o struttura in cui il pilota può saltare, spostando il personaggio lì istantaneamente. Si usa per viaggiare nello spazio o cambiare set di implant, con un cooldown di 24 ore."
  },
  {
   "term": "Local",
@@ -731,7 +731,7 @@
    "intel"
   ],
   "en": "Information about enemy movements, reported by pilots in an intel channel (for example 'reds in X', 'X clear'). Alliances use it to warn of roaming fleets and gate camps. Intel tools read those channels automatically.",
-  "it": "Informazioni sui movimenti nemici, riportate dai piloti in un canale intel (ad esempio 'reds in X', 'X clear'). Le alleanze lo usano per segnalare roaming e gate camp. Gli strumenti intel leggono questi canali automaticamente."
+  "it": "Informazioni sui movimenti nemici, riportate dai piloti in un canale intel (ad esempio 'reds in X', 'X clear'). Le alleanze lo usano per segnalare flotte in roaming e gate camp. Gli strumenti intel leggono questi canali automaticamente."
  },
  {
   "term": "Roam",
@@ -741,7 +741,7 @@
    "roamer"
   ],
   "en": "A small mobile fleet that moves from system to system looking for fights or targets. The aim is mobility and finding good fights rather than holding territory.",
-  "it": "Una piccola flotta mobile che si sposta di sistema in sistema cercando scontri o bersagli. L'obiettivo è la mobilità e trovare buoni scontri, non difendere un territorio."
+  "it": "Una piccola flotta mobile che si sposta di sistema in sistema cercando scontri o bersagli. L'obiettivo è la mobilità e trovare buoni scontri, non tenere un territorio."
  },
  {
   "term": "Blob",
@@ -750,7 +750,7 @@
    "zerg"
   ],
   "en": "A very large fleet. A 'blob' wins by numbers rather than by tactics, and large blobs are what push the server into time dilation.",
-  "it": "Una flotta molto grande. Un 'blob' vince con i numeri più che con la tattica, e i grandi blob sono ciò che manda il server in time dilation."
+  "it": "Una flotta molto grande. Un 'blob' vince con i numeri più che con la tattica, e i grandi blob sono ciò che porta il server in time dilation."
  },
  {
   "term": "Primary",
@@ -760,7 +760,7 @@
    "call primary"
   ],
   "en": "The target that the FC calls for the whole fleet to shoot first. 'Primary is X' means everyone locks and fires on X; the 'secondary' is the next target.",
-  "it": "Il bersaglio che l'FC indica a tutta la flotta come primo da colpire. 'Primary is X' significa che tutti agganciano e sparano a X; il 'secondary' è il bersaglio successivo."
+  "it": "Il bersaglio che l'FC indica a tutta la flotta come primo da colpire. 'Primary is X' significa che tutti lockano e sparano a X; il 'secondary' è il bersaglio successivo."
  },
  {
   "term": "Broadcast",
@@ -816,7 +816,7 @@
    "secstatus"
   ],
   "en": "Security status: a pilot's number from -10 to +10. It falls with criminal acts such as killing innocent pilots and rises by killing pirate NPCs (ratting). With a very low security status the police NPCs attack you in high-sec.",
-  "it": "Security status: il numero di un pilota da -10 a +10. Scende con atti criminali come uccidere piloti innocenti e sale uccidendo pirati NPC (ratting). Con un security status molto basso le polizie NPC ti attaccano in high-sec."
+  "it": "Security status: il valore di un pilota da -10 a +10. Scende con atti criminali come uccidere piloti innocenti e sale uccidendo pirati NPC (ratting). Con un security status molto basso gli NPC della polizia ti attaccano in high-sec."
  },
  {
   "term": "Wardec",
@@ -836,7 +836,7 @@
    "renting"
   ],
   "en": "A corp or alliance that pays ISK to a big null-sec alliance for the right to use part of its space, for example for ratting and mining. Renters are usually blue to their landlord.",
-  "it": "Una corp o alleanza che paga ISK a una grande alleanza null-sec per il diritto di usare parte del suo spazio, ad esempio per ratting e mining. I renter sono di solito blue verso il proprietario."
+  "it": "Una corp o alleanza che paga ISK a una grande alleanza null-sec per il diritto di usare parte del suo spazio, ad esempio per ratting e mining. I renter sono di solito blue verso il loro landlord."
  },
  {
   "term": "Sov",
@@ -845,7 +845,7 @@
    "sov null"
   ],
   "en": "Sovereignty: control of a null-sec system by an alliance through structures, which gives the right to build and use infrastructure there. 'Sov null' is the null-sec space that alliances own, as opposed to NPC null.",
-  "it": "Sovranità: il controllo di un sistema null-sec da parte di un'alleanza tramite strutture, che dà il diritto di costruire e usare infrastrutture lì. 'Sov null' è lo spazio null-sec posseduto dalle alleanze, in contrapposizione al null NPC."
+  "it": "Sovereignty: il controllo di un sistema null-sec da parte di un'alleanza tramite strutture, che dà il diritto di costruire e usare infrastrutture lì. 'Sov null' è lo spazio null-sec posseduto dalle alleanze, in contrapposizione al null NPC."
  },
  {
   "term": "Ratting",
@@ -867,7 +867,7 @@
    "sleeper site"
   ],
   "en": "The NPC defenders of wormhole space, ancient drones that guard the sites and give valuable loot. Sleeper sites are the main PvE income of J-space players.",
-  "it": "I difensori NPC dello spazio wormhole, antichi droni che sorvegliano i siti e danno loot di valore. I siti Sleeper sono il principale guadagno PvE dei giocatori J-space."
+  "it": "I difensori NPC dello spazio wormhole, antichi drone che sorvegliano i siti e danno loot di valore. I siti Sleeper sono il principale guadagno PvE dei giocatori J-space."
  },
  {
   "term": "Cosmic signature",
@@ -878,7 +878,7 @@
    "cosmic sig"
   ],
   "en": "A hidden site in a system, found by scanning with probes. Signatures include wormholes, data and relic sites, gas sites and combat sites, and are marked with a code such as ABC-123.",
-  "it": "Un sito nascosto in un sistema, trovato scansionando con le sonde. Le signature includono wormhole, siti data e relic, siti gas e siti combat, e sono indicate da un codice come ABC-123."
+  "it": "Un sito nascosto in un sistema, trovato scansionando con le probe. Le signature includono wormhole, siti data e relic, siti gas e siti combat, e sono indicate da un codice come ABC-123."
  },
  {
   "term": "Probing",
@@ -890,7 +890,7 @@
    "scanning down"
   ],
   "en": "Finding cosmic signatures or ships with scan probes launched from a Probe Launcher. 'Scanning down' a signature or target means narrowing it until its position is exact enough to warp to.",
-  "it": "Trovare cosmic signature o navi con le sonde lanciate da un Probe Launcher. 'Scanning down' una signature o un bersaglio significa restringere la ricerca finché la posizione è abbastanza precisa da poterci entrare in warp."
+  "it": "Trovare cosmic signature o navi con le scan probe lanciate da un Probe Launcher. 'Scanning down' una signature o un bersaglio significa restringere la ricerca finché la posizione è abbastanza precisa da poterlo raggiungere in warp."
  },
  {
   "term": "Jetcan",
@@ -900,7 +900,7 @@
    "jet can"
   ],
   "en": "A container ejected into space from a ship's cargo, usually by miners who dump ore for a hauler to collect. Anyone can take items from it, so it is also used as bait.",
-  "it": "Un contenitore espulso nello spazio dal cargo di una nave, di solito da minatori che scaricano il minerale perché un hauler lo raccolga. Chiunque può prendere gli oggetti, quindi si usa anche come esca."
+  "it": "Un contenitore espulso nello spazio dal cargo di una nave, di solito da miner che scaricano il minerale perché un hauler lo raccolga. Chiunque può prendere gli oggetti, quindi si usa anche come esca."
  },
  {
   "term": "Bait",
@@ -917,7 +917,7 @@
    "jump freighter"
   ],
   "en": "Jump Freighter: a freighter-class ship with a jump drive, used to move large cargo across null-sec and low-sec with cynos. They have no weapons, so they are escorted or flown with scouts.",
-  "it": "Jump Freighter: una nave classe freighter con jump drive, usata per trasportare grandi carichi in null-sec e low-sec tramite cyno. Non hanno armi, quindi si scortano o si pilotano con scout."
+  "it": "Jump Freighter: una nave classe freighter con jump drive, usata per trasportare grandi carichi in null-sec e low-sec tramite cyno. Non ha armi, quindi va scortata o pilotata insieme a scout."
  },
  {
   "term": "BR",
@@ -935,7 +935,7 @@
    "deep space transports"
   ],
   "en": "Deep Space Transport: a Tech II hauler with a large cargo hold and strong tank for transporting goods through dangerous space.",
-  "it": "Deep Space Transport: un hauler Tech II con grande cargo e tank robusto per trasportare merci in spazio pericoloso."
+  "it": "Deep Space Transport: un hauler Tech II con un grande cargo hold e un tank robusto per trasportare merci in spazio pericoloso."
  },
  {
   "term": "Inty",
@@ -963,7 +963,7 @@
    "heavy interdictors"
   ],
   "en": "Heavy Interdictor: a Tech II cruiser fitted with a Warp Disruption Field Generator, which makes a bubble centred on itself. Strong tank and tackle for blocking a gate or fleet.",
-  "it": "Heavy Interdictor: un incrociatore Tech II con un Warp Disruption Field Generator, che crea una bubble centrata su di sé. Tank e tackle robusti per bloccare un gate o una flotta."
+  "it": "Heavy Interdictor: un cruiser Tech II con un Warp Disruption Field Generator, che crea una bubble centrata su di sé. Tank e tackle robusti per bloccare un gate o una flotta."
  },
  {
   "term": "HAC",
@@ -973,7 +973,7 @@
    "hacs"
   ],
   "en": "Heavy Assault Cruiser: a Tech II cruiser designed for strong damage and tank in fleet and small-gang fights, such as the Zealot or the Muninn.",
-  "it": "Heavy Assault Cruiser: un incrociatore Tech II progettato per danno e tank elevati in scontri di flotta o di piccola gang, come Zealot o Muninn."
+  "it": "Heavy Assault Cruiser: un cruiser Tech II progettato per danno e tank elevati in scontri di flotta o di piccola gang, come Zealot o Muninn."
  },
  {
   "term": "Recon",
@@ -984,7 +984,7 @@
    "combat recon"
   ],
   "en": "Recon ship: a Tech II cruiser specialised in electronic warfare and tackle. Force Recons add a covert cloak and cynosural abilities, Combat Recons are tougher and aimed at fights.",
-  "it": "Recon ship: un incrociatore Tech II specializzato in guerra elettronica e tackle. I Force Recon aggiungono cloak covert e capacità cynosural, i Combat Recon sono più robusti e pensati per lo scontro."
+  "it": "Recon ship: un cruiser Tech II specializzato in electronic warfare e tackle. I Force Recon aggiungono cloak covert e capacità cynosural, i Combat Recon sono più robusti e pensati per lo scontro."
  },
  {
   "term": "T1",
@@ -1025,7 +1025,7 @@
    "tanky"
   ],
   "en": "The ability of a ship to survive damage. A 'buffer' tank relies on high hitpoints; an 'active' tank on repairers (shield boosters or armor repairers) restoring hitpoints each cycle.",
-  "it": "La capacità di una nave di sopravvivere ai danni. Un tank 'buffer' si basa su molti hitpoint; un tank 'active' su riparatori (shield booster o armor repairer) che ripristinano hitpoint a ogni ciclo."
+  "it": "La capacità di una nave di sopravvivere ai danni. Un tank 'buffer' si basa su molti hitpoint; un tank 'active' su repairer (shield booster o armor repairer) che ripristinano hitpoint a ogni ciclo."
  },
  {
   "term": "Ancil",
@@ -1034,8 +1034,8 @@
    "ancillary repairer",
    "ancils"
   ],
-  "en": "Ancillary shield boosters and armor repairers: stronger than the normal ones when loaded with their charge (Cap Booster charges for shields, Nanite Repair Paste for armor), but they stop working when the charges run out.",
-  "it": "Ancillary shield booster e armor repairer: più potenti dei normali quando caricati con la loro carica (Cap Booster per gli scudi, Nanite Repair Paste per l'armatura), ma smettono di funzionare quando le cariche finiscono."
+  "en": "Ancillary shield boosters and armor repairers: stronger than the normal ones while loaded with their charge (Cap Booster charges for shields, Nanite Repair Paste for armor). Without charges they still run but lose that advantage: the shield booster drains a lot of capacitor and the armor repairer repairs much less.",
+  "it": "Ancillary shield booster e ancillary armor repairer: più forti di quelli normali finché sono caricati con la loro carica (Cap Booster charge per lo shield, Nanite Repair Paste per l'armor). Senza cariche funzionano ancora ma perdono il vantaggio: lo shield booster consuma molto capacitor e l'armor repairer ripara molto meno."
  },
  {
   "term": "MWD",
@@ -1064,7 +1064,7 @@
    "heat"
   ],
   "en": "Overheating: pushing a module past its limits for more performance, at the risk of burning it out. Used in short bursts during a fight. It is also named 'heat'.",
-  "it": "Overheating: spingere un modulo oltre i suoi limiti per avere più prestazioni, con il rischio di bruciarlo. Si usa a brevi raffiche durante uno scontro. Si chiama anche 'heat'."
+  "it": "Overheating: spingere un modulo oltre i suoi limiti per avere più prestazioni, con il rischio di bruciarlo. Si usa a brevi intervalli durante uno scontro. Si chiama anche 'heat'."
  },
  {
   "term": "Links",
@@ -1075,7 +1075,7 @@
    "bursts"
   ],
   "en": "Command Bursts, once called gang links: modules on command ships, battlecruisers and Command Destroyers that give bonuses (such as armor, shield or information warfare) to the fleet members nearby.",
-  "it": "Command Burst, una volta chiamati gang link: moduli su command ship, battlecruiser e Command Destroyer che danno bonus (come armor, shield o information warfare) ai membri della flotta vicini."
+  "it": "Command Burst, un tempo chiamati gang link: moduli su command ship, battlecruiser e Command Destroyer che danno bonus (come armor, shield o information warfare) ai membri della flotta vicini."
  },
  {
   "term": "Pyfa",
@@ -1104,7 +1104,7 @@
    "killboard"
   ],
   "en": "zKillboard: the public killboard that collects the killmails of EVE. 'Check zkill' means looking at a pilot's recent kills and losses to judge how dangerous he is.",
-  "it": "zKillboard: la killboard pubblica che raccoglie i killmail di EVE. 'Check zkill' significa guardare le uccisioni e le perdite recenti di un pilota per giudicare quanto sia pericoloso."
+  "it": "zKillboard: la killboard pubblica che raccoglie i killmail di EVE. 'Check zkill' significa guardare i kill e le perdite recenti di un pilota per giudicare quanto sia pericoloso."
  },
  {
   "term": "Spai",
@@ -1152,7 +1152,7 @@
    "planetary industry"
   ],
   "en": "Planetary Interaction: extracting raw resources from planets with extractors and processing them in factories linked to a command center. PI products are used in industry and are sold on the market.",
-  "it": "Planetary Interaction: estrarre risorse grezze dai pianeti con estrattori e lavorarle in fabbriche collegate a un command center. I prodotti PI servono all'industria e si vendono sul mercato."
+  "it": "Planetary Interaction: estrarre risorse grezze dai pianeti con extractor e lavorarle in factory collegate a un command center. I prodotti PI servono all'industria e si vendono sul mercato."
  },
  {
   "term": "Mutaplasmid",
@@ -1162,7 +1162,7 @@
    "abyssal module"
   ],
   "en": "A consumable that randomly changes the stats of a module by applying it, producing an 'abyssal' module with better or worse attributes. Mutaplasmids drop in Abyssal Deadspace.",
-  "it": "Un consumabile che cambia a caso le statistiche di un modulo quando lo si applica, creando un modulo 'abyssal' con attributi migliori o peggiori. I mutaplasmid cadono in Abyssal Deadspace."
+  "it": "Un consumabile che cambia a caso le statistiche di un modulo quando lo si applica, creando un modulo 'abyssal' con attributi migliori o peggiori. I mutaplasmid cadono come loot nell'Abyssal Deadspace."
  },
  {
   "term": "Abyss",
@@ -1173,7 +1173,7 @@
    "filaments"
   ],
   "en": "Abyssal Deadspace: instanced PvE areas entered with an Abyssal Filament, with a time limit of 20 minutes and rising danger. They give loot such as mutaplasmids and other players can be met there.",
-  "it": "Abyssal Deadspace: aree PvE istanziate in cui si entra con un Abyssal Filament, con limite di tempo di 20 minuti e pericolo crescente. Danno loot come i mutaplasmid e vi si possono incontrare altri giocatori."
+  "it": "Abyssal Deadspace: aree PvE istanziate in cui si entra con un Abyssal Filament, con un limite di tempo di 20 minuti e un pericolo crescente. Danno loot come i mutaplasmid e vi si possono incontrare altri giocatori."
  },
  {
   "term": "Jump fatigue",
@@ -1182,7 +1182,7 @@
    "jump timer"
   ],
   "en": "A fatigue timer that grows each time a pilot jumps with a jump drive or uses a bridge, and lengthens the cooldown before the next jump. Longer jumps and jumping without breaks add more fatigue.",
-  "it": "Un timer di fatica che cresce ogni volta che un pilota salta con un jump drive o usa un ponte, e allunga il cooldown prima del salto successivo. Salti più lunghi e salti senza pause aggiungono più fatica."
+  "it": "Un timer di fatica che cresce ogni volta che un pilota salta con un jump drive o usa un bridge, e allunga il cooldown prima del salto successivo. Salti più lunghi e salti senza pause aggiungono più fatica."
  },
  {
   "term": "Burner mission",
@@ -1191,7 +1191,7 @@
    "burners"
   ],
   "en": "A difficult, fast kind of level 4 NPC mission in which the NPCs are fast, hard-hitting ships using electronic warfare. They are run with cheap, specialised fits for good ISK and loot.",
-  "it": "Un tipo difficile e veloce di missione NPC di livello 4 in cui gli NPC sono navi veloci e potenti che usano guerra elettronica. Si fanno con fit economici e specializzati per ISK e loot interessanti."
+  "it": "Un tipo difficile e veloce di missione NPC di livello 4 in cui gli NPC sono navi veloci dal danno elevato che usano electronic warfare. Si fanno con fit economici e specializzati per ottenere buoni ISK e loot."
  },
  {
   "term": "L4",
@@ -1201,7 +1201,7 @@
    "l4 mission"
   ],
   "en": "A level 4 mission: the hardest regular PvE mission from NPC agents, run in high-sec or low-sec in cruisers, battlecruisers or battleships for ISK, loyalty points and loot.",
-  "it": "Una missione di livello 4: la missione PvE regolare più difficile degli agenti NPC, che si fa in high-sec o low-sec con incrociatori, battlecruiser o battleship per ISK, loyalty point e loot."
+  "it": "Una missione di livello 4: la missione PvE regolare più difficile degli agenti NPC, che si fa in high-sec o low-sec con cruiser, battlecruiser o battleship per ISK, loyalty point e loot."
  },
  {
   "term": "Moon goo",

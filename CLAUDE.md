@@ -14,7 +14,7 @@ npm run dist:linux[:cuda|:vulkan]          # AppImage (base / NVIDIA / AMD)
 npm run dist:win[:cuda|:vulkan]            # NSIS (build su Windows)
 npm run validate-hf                        # modelli embedding + catalogo esistono su HuggingFace
 npm run build-index | rag | export-index   # indice vettoriale da dump / CLI RAG / export
-node desktop/tools/verify-{retrieval,source-tiers,query-rules,intel-backend,model-default}.mjs   # verifiche (dalla root)
+node desktop/tools/verify-{retrieval,source-tiers,query-rules,intel-backend,model-default,index-update}.mjs   # verifiche (dalla root)
 node desktop/tools/eval-answers.mjs <model.gguf>   # eval risposte (GPU libera)
 
 cd ingestion && python3 -m venv .venv && . .venv/bin/activate && pip install -e .
