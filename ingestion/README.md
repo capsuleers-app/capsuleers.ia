@@ -27,11 +27,11 @@ python -m capsuleers_ingestion.wormhole_update    # incremental wormhole update 
 ## Modules
 
 - `config.py` — configuration from `.env`.
-- `sde/source.py` — loader for the official Fenris Creations SDE JSONL files (`_key`, localized fields).
+- `sde/download.py` + `sde/legacy.py` — SDE API download converted to the legacy zip format; `sde/source.py` — loader for the JSONL files (`_key`, localized fields).
 - `sde/download.py` — finds the current build (latest.jsonl) and downloads/extracts the official JSONL zip.
 - `sde/parse.py` + `universe/industry/dogma/social/facilities.py` — build the Documents
   for each domain (skills, ships, modules, attributes/dogma, requirements, bonuses, universe, etc.).
-- `update.py` — daily SDE check (build number) and zero-downtime re-index (see `ops/`).
+- `update.py` — daily SDE check (SDE API `release`) and zero-downtime re-index (see `ops/`).
 - `wiki_update.py` — daily **incremental** wiki update over **every** registered wiki:
   detects changed pages via the MediaWiki `recentchanges` API (per-source watermark —
   `wiki_state.json` for EVE Uni, `wiki_state_<key>.json` for the others) and re-indexes only those.

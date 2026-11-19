@@ -12,7 +12,7 @@ python -m capsuleers_ingestion.run --sde   --dump data/docs_sde.jsonl   # SDE â†
 python -m capsuleers_ingestion.run --wiki  --dump data/docs_wiki.jsonl  # all MediaWiki sources (~40 min)
 python -m capsuleers_ingestion.run --names-index data/names_index.json  # nameâ†’typeID (price lookups)
 python -m capsuleers_ingestion.run --from-dump data/docs_sde.jsonl      # index into Qdrant
-python -m capsuleers_ingestion.update                                   # daily SDE build check + zero-downtime re-index
+python -m capsuleers_ingestion.update                                   # daily SDE release check (SDE API, converted to legacy format) + zero-downtime re-index
 ```
 
 ## Data / asset model
