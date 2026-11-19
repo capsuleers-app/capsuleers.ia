@@ -145,10 +145,24 @@ function sdeIndex() {
   return sdeIndexP;
 }
 
-async function sdeRecord(table, id) {
+async function sdeRecordUrl(table, id) {
   const tpl = (await sdeIndex()).tables[table]?.record?.urlTemplate;
   if (!tpl) throw new Error(`SDE: tabella ${table} senza record`);
-  const rec = await (await sdeFetch(tpl.replace(/\{[^}]*\}/, String(id)))).json();
+  return tpl.replace(/\{[^}]*\}/, String(id));
+}
+
+async function sdeRecord(table, id) {
+  const url = await sdeRecordUrl(table, id);
+  let res;
+  try { res = await sdeFetch(url); } catch (e) {
+    // Old releases vanish (404) once CCP publishes a new one and the app stays open for
+    // days: re-resolve the index once and retry if the pinned URL changed.
+    sdeIndexP = null;
+    const fresh = await sdeRecordUrl(table, id);
+    if (fresh === url) throw e;
+    res = await sdeFetch(fresh);
+  }
+  const rec = await res.json();
   if (!rec || isErrorBody(rec)) throw new Error(`SDE: record ${table}/${id} non valido`);
   return rec;
 }
