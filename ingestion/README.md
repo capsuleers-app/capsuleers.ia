@@ -28,7 +28,7 @@ python -m capsuleers_ingestion.wormhole_update    # incremental wormhole update 
 
 - `config.py` — configuration from `.env`.
 - `sde/download.py` + `sde/legacy.py` — SDE API download converted to the legacy zip format; `sde/source.py` — loader for the JSONL files (`_key`, localized fields).
-- `sde/download.py` — finds the current build (latest.jsonl) and downloads/extracts the official JSONL zip.
+- `sde/download.py` — reads the SDE API index (sde.evetech.net, release pinned) and downloads the needed tables; `sde/legacy.py` converts them to the legacy zip shape.
 - `sde/parse.py` + `universe/industry/dogma/social/facilities.py` — build the Documents
   for each domain (skills, ships, modules, attributes/dogma, requirements, bonuses, universe, etc.).
 - `update.py` — daily SDE check (SDE API `release`) and zero-downtime re-index (see `ops/`).

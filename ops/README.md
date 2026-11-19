@@ -6,11 +6,11 @@ checks **every day** whether the SDE has changed and, if so, rebuilds the index
 
 ## How it works
 
-1. **Change detection** — downloads only `latest.jsonl` from the official Fenris Creations SDE
-   (a few bytes) and compares the **build number** with the one saved in
-   `ingestion/data/sde_version.json`. If equal → it does nothing.
-2. **Rebuild** — if different: it downloads/extracts the new SDE, regenerates the Documents and
-   indexes them into a **new versioned collection** (`eve_knowledge_<md5>`).
+1. **Change detection** — reads only the index of the official SDE API (sde.evetech.net,
+   a few KB) and compares the **release id** with the one saved in
+   `ingestion/data/sde_version.json` (the build number is not unique). If equal → it does nothing.
+2. **Rebuild** — if different: it downloads the new SDE tables, regenerates the Documents and
+   indexes them into a **new versioned collection** (`eve_knowledge_<release>`).
    Unchanged embeddings are reused from the **cache** (`embed_cache.sqlite`),
    so an update only touches the few documents that actually changed → fast.
 3. **Atomic swap** — the Qdrant alias `eve_knowledge` (queried by the API) is
