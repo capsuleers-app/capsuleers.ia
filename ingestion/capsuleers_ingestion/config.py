@@ -25,13 +25,9 @@ class Config:
     embed_dim: int = int(os.getenv("EMBED_DIM", "1024"))
     collection: str = os.getenv("QDRANT_COLLECTION", "eve_knowledge")
 
-    # SDE source: official Fenris Creations in JSON Lines.
-    sde_latest_url: str = "https://developers.eveonline.com/static-data/tranquility/latest.jsonl"
-    sde_zip_pattern: str = (
-        "https://developers.eveonline.com/static-data/tranquility/"
-        "eve-online-static-data-{build}-jsonl.zip"
-    )
-    sde_dir: str = str(DATA_DIR / "sde_official")  # folder with the extracted JSONL files
+    # SDE source: SDE API (index + one JSONL per table, converted to the legacy zip format).
+    sde_index_url: str = "https://sde.evetech.net/tranquility/latest/"
+    sde_dir: str = str(DATA_DIR / "sde_official")  # folder with the converted JSONL files
 
     wiki_api_url: str = "https://wiki.eveuniversity.org/api.php"
 

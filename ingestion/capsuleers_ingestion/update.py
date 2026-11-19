@@ -1,6 +1,6 @@
 """Check and auto-update of the official Fenris Creations SDE.
 
-Change detection: compares the current build number (from latest.jsonl, a few bytes)
+Change detection: compares the current SDE API `release` (build numbers are not unique)
 with the saved one. If it changed, downloads the new SDE JSONL, rebuilds the
 Documents and indexes into a NEW versioned collection, then moves the
 `eve_knowledge` alias (zero-downtime). Unchanged embeddings are reused from the cache.
@@ -24,7 +24,7 @@ from .chunk import chunk_documents
 from .config import CONFIG, DATA_DIR
 from .embedcache import EmbedCache
 from .sde import parse_all
-from .sde.download import download_sde_jsonl, latest_build
+from .sde.download import download_sde_jsonl, fetch_index
 
 VERSION_FILE = DATA_DIR / "sde_version.json"
 
@@ -39,24 +39,25 @@ def save_state(state: dict) -> None:
     VERSION_FILE.write_text(json.dumps(state, indent=2))
 
 
-def check() -> tuple[bool, int, int]:
-    """Returns (update_available, remote_build, local_build)."""
-    remote = latest_build()
-    local = int(local_state().get("build", 0))
-    return remote != local, remote, local
+def check() -> tuple[bool, dict, str]:
+    """Returns (update_available, remote_index, local_release)."""
+    index = fetch_index()
+    local = local_state().get("release", "")
+    return index["release"] != local, index, local
 
 
 def run_update(force: bool = False) -> None:
-    available, remote, local = check()
+    available, index, local = check()
+    remote = index["release"]
     if not available and not force:
-        print(f"SDE già aggiornato (build {remote}). Nessuna azione.")
+        print(f"SDE già aggiornato (release {remote}). Nessuna azione.")
         return
 
     print(f"Aggiornamento SDE: locale={local or '—'} → remoto={remote}"
           + (" (forzato)" if force and not available else ""))
 
-    # 1. Download and extract the new official SDE.
-    sde_dir = download_sde_jsonl(remote)
+    # 1. Download, validate and convert the new SDE (pinned to the index just read).
+    sde_dir = download_sde_jsonl(index)
 
     # 2. Index into a new versioned collection (embeddings via cache).
     from .index import get_client, index_chunks, swap_alias
@@ -74,7 +75,8 @@ def run_update(force: bool = False) -> None:
     swap_alias(client, CONFIG.collection, new_collection)
 
     save_state({
-        "build": remote,
+        "release": remote,
+        "build": int(index.get("buildNumber", 0)),
         "collection": new_collection,
         "chunks": total,
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -89,11 +91,11 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.check:
-        available, remote, local = check()
+        available, index, local = check()
         if available:
-            print(f"Aggiornamento SDE DISPONIBILE: build {local or '—'} → {remote}")
+            print(f"Aggiornamento SDE DISPONIBILE: release {local or '—'} → {index['release']}")
             sys.exit(1)
-        print(f"SDE aggiornato (build {remote}).")
+        print(f"SDE aggiornato (release {index['release']}).")
         sys.exit(0)
 
     run_update(force=args.force)
