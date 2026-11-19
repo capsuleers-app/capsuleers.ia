@@ -109,15 +109,96 @@ export async function characterAffiliation(rawName) {
   } catch { return null; }
 }
 
+// === Static universe data (SDE API) ===
+// Since 2026-11-19 ESI no longer serves /universe/{regions,constellations,systems}: the static map now
+// lives on sde.evetech.net. The release is resolved ONCE from the index (/latest/ is a redirect and
+// sometimes answered {"error":"Not found"}); from there the URLs are pinned. An error body is never data.
+const SDE_BASE = "https://sde.evetech.net/tranquility/latest/";
+const SDE_RETRIES = 3;
+const SDE_TIMEOUT_MS = 30_000;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function sdeFetch(url) {
+  let lastErr;
+  for (let attempt = 1; attempt <= SDE_RETRIES; attempt++) {
+    try {
+      const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(SDE_TIMEOUT_MS) });
+      if (r.ok) return r;
+      lastErr = new Error(`SDE HTTP ${r.status} ${url}`);
+    } catch (e) { lastErr = e; }
+    if (attempt < SDE_RETRIES) await sleep(1000 * attempt);
+  }
+  throw lastErr;
+}
+const isErrorBody = (v) => !!v && typeof v === "object" && !Array.isArray(v) && "error" in v;
+
+let sdeIndexP = null;
+function sdeIndex() {
+  if (!sdeIndexP) {
+    sdeIndexP = (async () => {
+      const idx = await (await sdeFetch(SDE_BASE)).json();
+      if (!idx || isErrorBody(idx) || !idx.release || !idx.tables) throw new Error("SDE: indice non valido");
+      return idx;
+    })();
+    sdeIndexP.catch(() => { sdeIndexP = null; });  // do not cache a failure: retry next call
+  }
+  return sdeIndexP;
+}
+
+async function sdeRecordUrl(table, id) {
+  const tpl = (await sdeIndex()).tables[table]?.record?.urlTemplate;
+  if (!tpl) throw new Error(`SDE: tabella ${table} senza record`);
+  return tpl.replace(/\{[^}]*\}/, String(id));
+}
+
+async function sdeRecord(table, id) {
+  const url = await sdeRecordUrl(table, id);
+  let res;
+  try { res = await sdeFetch(url); } catch (e) {
+    // Old releases vanish (404) once CCP publishes a new one and the app stays open for
+    // days: re-resolve the index once and retry if the pinned URL changed.
+    sdeIndexP = null;
+    const fresh = await sdeRecordUrl(table, id);
+    if (fresh === url) throw e;
+    res = await sdeFetch(fresh);
+  }
+  const rec = await res.json();
+  if (!rec || isErrorBody(rec)) throw new Error(`SDE: record ${table}/${id} non valido`);
+  return rec;
+}
+
+// mapConstellations (~1.1k rows, small) loaded once: constellationID → {regionID, solarSystemIDs}.
+// One request replaces region + N constellation lookups; the ~8k-row mapSolarSystems stays per-record.
+let constellationsP = null;
+function constellations() {
+  if (!constellationsP) {
+    constellationsP = (async () => {
+      const url = (await sdeIndex()).tables.mapConstellations?.jsonl?.url;
+      if (!url) throw new Error("SDE: mapConstellations senza jsonl");
+      const map = new Map();
+      for (const line of (await (await sdeFetch(url)).text()).split("\n")) {
+        if (!line.trim()) continue;
+        const c = JSON.parse(line);
+        if (isErrorBody(c) || c.constellationID == null) throw new Error("SDE: riga mapConstellations non valida");
+        map.set(c.constellationID, { regionID: c.regionID, solarSystemIDs: c.solarSystemIDs || [] });
+      }
+      if (!map.size) throw new Error("SDE: mapConstellations vuota");
+      return map;
+    })();
+    constellationsP.catch(() => { constellationsP = null; });
+  }
+  return constellationsP;
+}
+
 // === System activity per area (last hour, ESI universe/system_* feed) ===
 const regionCache = new Map();  // regionId → Set(systemId)
 async function regionSystemIds(regionId) {
   if (regionCache.has(regionId)) return regionCache.get(regionId);
-  const region = await get(`/universe/regions/${regionId}/`);
   const set = new Set();
-  await Promise.all((region.constellations || []).map(async (cid) => {
-    try { const c = await get(`/universe/constellations/${cid}/`); (c.systems || []).forEach((s) => set.add(s)); } catch { /* skip */ }
-  }));
+  for (const c of (await constellations()).values()) {
+    if (c.regionID === regionId) c.solarSystemIDs.forEach((s) => set.add(s));
+  }
+  if (!set.size) throw new Error(`SDE: regione ${regionId} sconosciuta`);
   regionCache.set(regionId, set);
   return set;
 }
@@ -131,11 +212,12 @@ async function regionsOfSystems(ids) {
   const miss = [...new Set(ids)].filter((id) => !sysToRegionId.has(id));
   await Promise.all(miss.map(async (id) => {
     try {
-      const sys = await get(`/universe/systems/${id}/`);
-      let rid = constToRegionId.get(sys.constellation_id);
+      const sys = await sdeRecord("mapSolarSystems", id);
+      let rid = constToRegionId.get(sys.constellationID);
       if (rid == null) {
-        const con = await get(`/universe/constellations/${sys.constellation_id}/`);
-        rid = con.region_id; constToRegionId.set(sys.constellation_id, rid);
+        rid = (await constellations()).get(sys.constellationID)?.regionID;
+        if (rid == null) throw new Error("SDE: costellazione sconosciuta");
+        constToRegionId.set(sys.constellationID, rid);
       }
       sysToRegionId.set(id, rid);
     } catch { sysToRegionId.set(id, null); }
@@ -181,9 +263,15 @@ export async function systemActivity(areaName, opts = {}) {
     const area = await resolveArea(areaName);
     if (!area) return null;
     scope = area.name;
-    if (area.category === "region") systemSet = await regionSystemIds(area.id);
-    else if (area.category === "constellation") { const c = await get(`/universe/constellations/${area.id}/`); systemSet = new Set(c.systems || []); }
-    else systemSet = new Set([area.id]);
+    try {
+      if (area.category === "region") systemSet = await regionSystemIds(area.id);
+      else if (area.category === "constellation") {
+        const c = (await constellations()).get(area.id);
+        if (!c) return null;
+        systemSet = new Set(c.solarSystemIDs);
+      }
+      else systemSet = new Set([area.id]);
+    } catch { return null; }  // offline / SDE unavailable
   }
   const inScope = (id) => systemSet === null || systemSet.has(id);
   const rank = (rows, field) => rows.map((x) => ({ id: x.system_id, v: x[field] }))
